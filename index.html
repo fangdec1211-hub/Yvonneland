@@ -3,638 +3,737 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fundraising Strategy | EMBA Workshop</title>
+    <title>AURA SOLA 創業募資計畫</title>
     
-    <!-- React & ReactDOM (Core) -->
-    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    
-    <!-- Babel (JSX Compiler) -->
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    
-    <!-- Tailwind CSS (Styling) -->
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    colors: {
-                        emerald: {
-                            400: '#34d399', 500: '#10b981', 600: '#059669',
-                            800: '#065f46', 900: '#064e3b', 950: '#022c22',
-                        },
-                        slate: {
-                            850: '#1e293b', 900: '#0f172a', 950: '#020617',
-                        }
-                    },
-                    fontFamily: {
-                        sans: ['Inter', 'system-ui', 'sans-serif'],
-                        serif: ['Times New Roman', 'Times', 'serif'],
-                    }
-                }
-            }
-        }
-    </script>
-
+    <!-- 自定義動畫樣式 -->
     <style>
-        /* --- 翻轉卡片核心 CSS (支援點擊翻轉) --- */
-        .flip-card {
-            background-color: transparent;
-            perspective: 1000px;
-            cursor: pointer;
-        }
-
-        .flip-card-inner {
-            position: relative;
-            width: 100%;
-            height: 100%;
-            text-align: center;
-            transition: transform 0.6s;
-            transform-style: preserve-3d;
-        }
-
-        /* 當添加 .flipped class 時翻轉 */
-        .flip-card.flipped .flip-card-inner {
-            transform: rotateY(180deg);
-        }
-
-        .flip-card-front, .flip-card-back {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            -webkit-backface-visibility: hidden;
-            backface-visibility: hidden;
-            border-radius: 0.25rem;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 1.5rem;
-        }
-
-        .flip-card-back {
-            transform: rotateY(180deg);
-        }
-
-        /* 動畫 */
+        body { font-family: 'Times New Roman', serif; }
+        .font-sans { font-family: system-ui, -apple-system, sans-serif; }
+        .font-serif { font-family: 'Times New Roman', serif; }
+        
+        /* 簡單的進場動畫 */
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
             to { opacity: 1; transform: translateY(0); }
         }
-        .animate-fadeIn {
-            animation: fadeIn 0.5s ease-out forwards;
+        @keyframes slideInLeft {
+            from { opacity: 0; transform: translateX(-20px); }
+            to { opacity: 1; transform: translateX(0); }
         }
+        @keyframes slideInRight {
+            from { opacity: 0; transform: translateX(20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        
+        .animate-fade-in { animation: fadeIn 0.8s ease-out forwards; }
+        .animate-fade-in-up { animation: fadeInUp 0.8s ease-out forwards; }
+        .animate-slide-in-left { animation: slideInLeft 0.8s ease-out forwards; }
+        .animate-slide-in-right { animation: slideInRight 0.8s ease-out forwards; }
     </style>
+
+    <!-- 設定 Import Map 以支援 React 與 Lucide -->
+    <script type="importmap">
+    {
+        "imports": {
+            "react": "https://esm.sh/react@18.2.0",
+            "react-dom/client": "https://esm.sh/react-dom@18.2.0/client",
+            "lucide-react": "https://esm.sh/lucide-react@0.292.0"
+        }
+    }
+    </script>
 </head>
-<body class="antialiased">
+<body class="bg-white">
     <div id="root"></div>
 
-    <script type="text/babel">
-        const { useState, useEffect } = React;
+    <!-- React 應用程式邏輯 -->
+    <script type="module">
+        import React, { useState, useEffect } from 'react';
+        import { createRoot } from 'react-dom/client';
+        import { Menu, X, Play, ChevronRight, Droplet, Wind, Battery, Flower, Award, Users, Target, PieChart, Leaf, ArrowRight } from 'lucide-react';
 
-        // --- ICONS (SVG Components) ---
-        const IconWrapper = ({ children, className, size = 24, onClick }) => (
-            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} onClick={onClick}>{children}</svg>
-        );
-        const MenuIcon = (p) => <IconWrapper {...p}><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></IconWrapper>;
-        const XIcon = (p) => <IconWrapper {...p}><path d="M18 6 6 18"/><path d="m6 6 12 12"/></IconWrapper>;
-        const GlobeIcon = (p) => <IconWrapper {...p}><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></IconWrapper>;
-        const MoonIcon = (p) => <IconWrapper {...p}><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></IconWrapper>;
-        const SunIcon = (p) => <IconWrapper {...p}><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></IconWrapper>;
-        const ChevronRightIcon = (p) => <IconWrapper {...p}><path d="m9 18 6-6-6-6"/></IconWrapper>;
-        const ChevronDownIcon = (p) => <IconWrapper {...p}><path d="m6 9 6 6 6-6"/></IconWrapper>;
-        const ChevronUpIcon = (p) => <IconWrapper {...p}><path d="m18 15-6-6-6 6"/></IconWrapper>;
-        const BriefcaseIcon = (p) => <IconWrapper {...p}><path d="M16 20V4a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/><rect width="20" height="14" x="2" y="6" rx="2"/></IconWrapper>;
-        const TrendingUpIcon = (p) => <IconWrapper {...p}><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></IconWrapper>;
-        const CalculatorIcon = (p) => <IconWrapper {...p}><rect width="16" height="20" x="4" y="2" rx="2"/><line x1="8" x2="16" y1="6" y2="6"/><line x1="16" x2="16" y1="18" y2="18"/><path d="M16 10h.01"/><path d="M12 10h.01"/><path d="M8 10h.01"/><path d="M12 14h.01"/><path d="M8 14h.01"/><path d="M12 18h.01"/><path d="M8 18h.01"/></IconWrapper>;
-        const AwardIcon = (p) => <IconWrapper {...p}><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"/></IconWrapper>;
+        // --- Components ---
 
-        // --- DATA & TRANSLATIONS ---
-        const TEXTS = {
-            header: {
-                title: { en: "Fundraising Strategy", zh: "創業募資實戰策略" },
-                subtitle: { en: "EMBA Strategic Workshop", zh: "EMBA 高階管理工作坊" }
-            },
-            nav: {
-                mindset: { en: "Mindset Shift", zh: "思維轉型" },
-                stages: { en: "Funding Stages", zh: "募資階段" },
-                investors: { en: "Investor Types", zh: "投資人類別" },
-                valuation: { en: "Valuation Tool", zh: "估值模型" },
-                deck: { en: "Pitch Deck 10", zh: "簡報架構" },
-                pitch: { en: "Elevator Pitch", zh: "電梯簡報實戰" },
-                terms: { en: "Term Sheet", zh: "投資條款" }
-            },
-            footer: {
-                version: "v2.5.0 (2026.01)",
-                copyright: "© 2026 Fundraising Workshop Strategy.",
-                editor: { en: "Creative Editor: Prof. Shihmin Lo", zh: "創意編輯：Prof. Shihmin Lo" }
-            }
+        const Navigation = ({ activeTab, setActiveTab }) => {
+          const [isOpen, setIsOpen] = useState(false);
+          
+          const navLinks = [
+            { id: 'home', name: '首頁' },
+            { id: 'about', name: 'About' },
+            { id: 'solution', name: '解決方案' },
+            { id: 'patent', name: '獨特專利' },
+            { id: 'crowdfunding', name: '預購專案' },
+            { id: 'team', name: '核心團隊' },
+          ];
+
+          const handleNavClick = (id) => {
+            setActiveTab(id);
+            setIsOpen(false);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          };
+
+          return (
+            React.createElement("nav", { className: "fixed w-full z-50 bg-white/95 backdrop-blur-sm shadow-sm py-4 transition-all duration-300" },
+              React.createElement("div", { className: "container mx-auto px-6 flex justify-between items-center" },
+                React.createElement("button", { 
+                  onClick: () => handleNavClick('home'),
+                  className: "text-2xl tracking-widest font-serif font-bold text-slate-900 hover:text-[#D4AF37] transition-colors"
+                }, "AURA SOLA"),
+
+                /* Desktop Menu */
+                React.createElement("div", { className: "hidden md:flex space-x-8 items-center" },
+                  navLinks.map((link) => (
+                    React.createElement("button", { 
+                      key: link.id, 
+                      onClick: () => handleNavClick(link.id),
+                      className: `text-sm uppercase tracking-widest transition-colors relative group ${activeTab === link.id ? 'text-[#D4AF37] font-semibold' : 'text-slate-600 hover:text-[#D4AF37]'}`
+                    }, 
+                      link.name,
+                      activeTab === link.id && React.createElement("span", { className: "absolute -bottom-2 left-0 w-full h-0.5 bg-[#D4AF37]" })
+                    )
+                  )),
+                  React.createElement("button", { 
+                    onClick: () => handleNavClick('crowdfunding'),
+                    className: "bg-[#D4AF37] text-white px-5 py-2 text-sm uppercase tracking-wider hover:bg-[#b5952f] transition-colors rounded-sm"
+                  }, "立即贊助")
+                ),
+
+                /* Mobile Menu Button */
+                React.createElement("button", { className: "md:hidden text-slate-900", onClick: () => setIsOpen(!isOpen) },
+                  isOpen ? React.createElement(X, { size: 24 }) : React.createElement(Menu, { size: 24 })
+                )
+              ),
+
+              /* Mobile Menu Overlay */
+              isOpen && (
+                React.createElement("div", { className: "md:hidden absolute top-full left-0 w-full bg-white shadow-lg py-4 px-6 flex flex-col space-y-4 border-t border-gray-100 h-screen" },
+                  navLinks.map((link) => (
+                    React.createElement("button", { 
+                      key: link.id, 
+                      onClick: () => handleNavClick(link.id),
+                      className: `text-left text-sm uppercase tracking-widest py-3 border-b border-gray-50 ${activeTab === link.id ? 'text-[#D4AF37] font-bold' : 'text-slate-800'}`
+                    }, link.name)
+                  )),
+                  React.createElement("button", { 
+                    onClick: () => handleNavClick('crowdfunding'),
+                    className: "block text-center bg-[#D4AF37] text-white w-full py-3 text-sm uppercase tracking-wider mt-4"
+                  }, "立即贊助")
+                )
+              )
+            )
+          );
         };
 
-        const PITCH_FIELDS = {
-            name: { en: "Company Name", zh: "公司名稱", placeholder: { en: "e.g. NextGen Tech", zh: "例如：下世代科技" } },
-            customer: { en: "Target Customer", zh: "目標客戶", placeholder: { en: "e.g. SME Owners", zh: "例如：中小企業主" } },
-            problem: { en: "Customer Pain Point", zh: "客戶痛點", placeholder: { en: "e.g. High Cost", zh: "例如：成本過高" } },
-            solution: { en: "Your Solution", zh: "解決方案", placeholder: { en: "e.g. AI Automation", zh: "例如：AI 自動化" } },
-            traction: { en: "Key Traction", zh: "目前成績", placeholder: { en: "e.g. 10k users", zh: "例如：一萬名用戶" } },
-            ask: { en: "Funding Ask", zh: "募資需求", placeholder: { en: "e.g. $2M USD", zh: "例如：200萬美金" } }
+        const HeroSection = ({ onExploreClick }) => {
+          return (
+            React.createElement("div", { className: "relative h-screen flex items-center justify-center overflow-hidden" },
+              /* Video Background */
+              React.createElement("div", { className: "absolute inset-0 z-0" },
+                React.createElement("video", { 
+                  autoPlay: true, 
+                  loop: true, 
+                  muted: true, 
+                  playsInline: true, 
+                  className: "w-full h-full object-cover"
+                },
+                  React.createElement("source", { src: "https://video.wixstatic.com/video/7a9f89_f08b0ce867df444eab6708e264f88d6e/720p/mp4/file.mp4", type: "video/mp4" }),
+                  "您的瀏覽器不支援影片標籤。"
+                ),
+                React.createElement("div", { className: "absolute inset-0 bg-black/30" })
+              ),
+
+              React.createElement("div", { className: "relative z-10 text-center text-white px-6 max-w-4xl mx-auto mt-16 animate-fade-in-up" },
+                React.createElement("p", { className: "text-sm md:text-base uppercase tracking-[0.3em] mb-4 text-[#D4AF37]" }, "Fog Atomizing Diffuser"),
+                React.createElement("h1", { className: "text-5xl md:text-7xl font-serif font-medium mb-6 leading-tight" },
+                  "在呼吸之間", React.createElement("br"), "遇見靜靜盛放的自己"
+                ),
+                React.createElement("p", { className: "text-lg md:text-xl font-light mb-10 text-gray-200 tracking-wide" },
+                  "AURA SOLA 霧化香氛儀"
+                ),
+                
+                React.createElement("div", { className: "flex flex-col md:flex-row gap-4 justify-center items-center" },
+                  React.createElement("button", { className: "group flex items-center justify-center space-x-3 bg-white/10 backdrop-blur-md border border-white/30 px-8 py-4 rounded-full hover:bg-white hover:text-slate-900 transition-all duration-300" },
+                    React.createElement("span", { className: "uppercase tracking-widest text-sm" }, "觀看品牌影片"),
+                    React.createElement("div", { className: "w-8 h-8 rounded-full bg-[#D4AF37] flex items-center justify-center text-white group-hover:scale-110 transition-transform" },
+                      React.createElement(Play, { size: 12, fill: "currentColor" })
+                    )
+                  ),
+                  
+                  React.createElement("button", { 
+                    onClick: onExploreClick,
+                    className: "flex items-center space-x-2 text-white hover:text-[#D4AF37] transition-colors px-6 py-4 uppercase tracking-widest text-sm"
+                  },
+                    React.createElement("span", null, "探索產品故事"),
+                    React.createElement(ArrowRight, { size: 16 })
+                  )
+                )
+              )
+            )
+          );
         };
 
-        const CONTENT = {
-            mindset: {
-                title: { en: "SME vs. Startup Logic", zh: "中小企業 vs. 新創思維" },
-                desc: { en: "Shift from Profit-driven to Valuation-driven.", zh: "從「利潤導向」轉向「市值導向」。" },
-                cards: [
-                    {
-                        icon: BriefcaseIcon,
-                        title: { en: "SME (Business)", zh: "傳統生意 (SME)" },
-                        list: {
-                            en: ["Profit Maximization", "Linear Growth", "100% Control", "Bank Loans", "Dividend Focused"],
-                            zh: ["追求利潤極大化", "線性成長", "100% 控制權", "銀行借貸為主", "重視分紅"]
-                        },
-                        style: "border-emerald-600"
-                    },
-                    {
-                        icon: TrendingUpIcon,
-                        title: { en: "Startup (Scale)", zh: "創業思維 (Startup)" },
-                        list: {
-                            en: ["Valuation Maximization", "Exponential Growth", "Shared Equity", "VC Funding", "Exit Strategy"],
-                            zh: ["追求市值極大化", "指數型成長", "股權稀釋共享", "創投融資", "重視出場 (Exit)"]
-                        },
-                        style: "border-emerald-400"
-                    }
-                ]
-            },
-            stages: {
-                title: { en: "Funding Lifecycle", zh: "企業募資生命週期" },
-                desc: { en: "Understand the milestones for each round.", zh: "理解每一輪募資的里程碑與目標。" },
-                items: [
-                    { 
-                        stage: { en: "Seed Round", zh: "種子輪 (Seed)" }, 
-                        goal: { en: "Idea Validation & MVP", zh: "驗證點子 & 最小可行性產品" },
-                        detail: { en: "Prove the problem exists and you can solve it. Usually funded by FFF or Angels.", zh: "證明痛點存在且你有能力解決。資金通常來自3F或天使。" }
-                    },
-                    { 
-                        stage: { en: "Series A", zh: "A 輪 (Series A)" }, 
-                        goal: { en: "Product-Market Fit & Traction", zh: "產品市場媒合 (PMF) & 營運數據" },
-                        detail: { en: "You have a working product and paying users. Now you need money to optimize.", zh: "產品已上線且有付費與留存。需要資金優化產品與團隊。" }
-                    },
-                    { 
-                        stage: { en: "Series B", zh: "B 輪 (Series B)" }, 
-                        goal: { en: "Scaling & Expansion", zh: "規模化 & 市場擴張" },
-                        detail: { en: "The business model is proven. Pour fuel on the fire to capture market share.", zh: "商業模式已驗證。注入資金快速搶佔市佔率與擴張地區。" }
-                    },
-                    { 
-                        stage: { en: "IPO / M&A", zh: "上市 / 併購 (Exit)" }, 
-                        goal: { en: "Liquidity & Public Trading", zh: "流動性 & 公開交易" },
-                        detail: { en: "The exit event for early investors. Provides liquidity and capital for massive growth.", zh: "早期投資人的退場機制。為公司提供更充裕的資本與知名度。" }
-                    }
-                ]
-            },
-            investors: {
-                title: { en: "Investor Landscape", zh: "投資人光譜" },
-                desc: { en: "Who fits your current stage?", zh: "誰適合你現在的階段？" },
-                items: [
-                    {
-                        type: { en: "FFF", zh: "3F (親友)" },
-                        desc: { en: "Family, Friends, and Fools. They invest in YOU, not the business.", zh: "家人、朋友、傻瓜。他們投的是「你這個人」，不是商業模式。" }
-                    },
-                    {
-                        type: { en: "Angel Investors", zh: "天使投資人" },
-                        desc: { en: "High-net-worth individuals. Flexible, fast, but smaller checks.", zh: "高資產個人。決策快、條款彈性，但金額較小，通常看直覺。" }
-                    },
-                    {
-                        type: { en: "Venture Capital (VC)", zh: "創投基金" },
-                        desc: { en: "Institutional money. Requires high growth returns within 7-10 years.", zh: "機構法人資金。追求高成長回報，有基金年限壓力 (7-10年)。" }
-                    },
-                    {
-                        type: { en: "CVC", zh: "企業創投" },
-                        desc: { en: "Corporate VC. Strategic value + Financial return. Great for partnerships.", zh: "企業創投。追求「策略價值」+「財務回報」。適合尋求產業資源對接。" }
-                    }
-                ]
-            },
-            deck: {
-                title: { en: "The Pitch Deck Framework", zh: "募資簡報架構" },
-                desc: { en: "10 slides to tell a billion-dollar story.", zh: "用10張投影片講一個值錢的故事。" },
-                slides: [
-                    { title: { en: "1. The Hook", zh: "1. 一句話定義" }, content: { en: "Company Name + Value Proposition. Who are you in one sentence?", zh: "公司名稱 + 價值主張。用一句話定義你是誰。" } },
-                    { title: { en: "2. The Problem", zh: "2. 市場痛點" }, content: { en: "What is the pain? How much money/time is wasted?", zh: "客戶有多痛？浪費了多少時間或金錢？" } },
-                    { title: { en: "3. The Solution", zh: "3. 解決方案" }, content: { en: "How do you solve it? Focus on value, not specs.", zh: "你如何止痛？重點是帶來的「價值」，而非技術規格。" } },
-                    { title: { en: "4. Market Size", zh: "4. 市場規模" }, content: { en: "TAM > SAM > SOM. Is the ceiling high enough?", zh: "天花板有多高？能否複製到海外市場？" } },
-                    { title: { en: "5. Business Model", zh: "5. 商業模式" }, content: { en: "How do you make money? Subscription? Transaction?", zh: "怎麼賺錢？訂閱？抽成？展示精準的成本結構。" } },
-                    { title: { en: "6. The Moat", zh: "6. 競爭優勢" }, content: { en: "Why can't Google kill you? Patents? Network effects?", zh: "為什麼大公司打不死你？專利、數據壁壘或獨家通路？" } },
-                    { title: { en: "7. Traction", zh: "7. 營運實績" }, content: { en: "Revenue, Users, Growth Rate. Data speaks louder.", zh: "數據說話：營收、用戶數、成長率、知名客戶。" } },
-                    { title: { en: "8. Roadmap", zh: "8. 未來規劃" }, content: { en: "Milestones for the next 18 months.", zh: "拿到錢後，未來18個月要達成什麼具體里程碑？" } },
-                    { title: { en: "9. The Team", zh: "9. 團隊介紹" }, content: { en: "Why you? Domain expertise and execution power.", zh: "為什麼是你們？強調產業經驗與執行力。" } },
-                    { title: { en: "10. The Ask", zh: "10. 募資計畫" }, content: { en: "How much? Equity? Use of funds?", zh: "要多少錢？釋出多少股份？錢要花在哪裡？" } },
-                ]
-            },
-            terms: {
-                title: { en: "Term Sheet Decoder", zh: "投資條款解密" },
-                items: [
-                    { term: { en: "Valuation (Pre/Post)", zh: "估值 (投前/投後)" }, desc: { en: "Pre-money is what you are worth now. Post-money = Pre + Investment.", zh: "投前是現在的身價。投後 = 投前 + 投資金額。" } },
-                    { term: { en: "Liquidation Preference", zh: "清算優先權" }, desc: { en: "Who gets paid first if the company is sold or liquidated? Usually investors get 1x back first.", zh: "公司倒閉或被賣掉時，誰先拿錢？通常投資人要求優先拿回 1倍本金。" } },
-                    { term: { en: "Vesting Schedule", zh: "股權兌現期" }, desc: { en: "Founders earn their stock over time (usually 4 years). Keeps you committed.", zh: "創辦人的股票不是馬上拿到，而是分期（通常4年）給付，綁定創辦人留任。" } },
-                    { term: { en: "Board Seats", zh: "董事會席次" }, desc: { en: "Control rights. Investors often want a seat to monitor performance.", zh: "控制權的象徵。投資人通常要求一席董事來監督公司運作。" } },
-                    { term: { en: "Anti-dilution", zh: "反稀釋條款" }, desc: { en: "Protects investors if you raise money later at a lower valuation (Down Round).", zh: "若未來估值降低融資 (Down Round)，保護早期投資人股權不被過度稀釋。" } },
-                ]
-            }
-        };
-
-        // --- SUB COMPONENTS ---
-
-        // Mobile Optimized Flip Card (Click to Flip)
-        const FlipCard = ({ frontTitle, frontSubtitle, backContent, theme }) => {
-            const [isFlipped, setIsFlipped] = useState(false);
-
-            return (
-                <div 
-                    className={`flip-card h-64 w-full ${isFlipped ? 'flipped' : ''}`} 
-                    onClick={() => setIsFlipped(!isFlipped)}
-                >
-                    <div className="flip-card-inner shadow-xl rounded-sm">
-                        {/* Front */}
-                        <div className={`flip-card-front border-t-4 ${theme === 'dark' ? 'bg-slate-800 border-emerald-500 text-white' : 'bg-white border-emerald-600 text-slate-800'}`}>
-                            <h3 className="text-xl font-bold font-serif mb-2">{frontTitle}</h3>
-                            <div className="w-12 h-1 bg-emerald-500 mb-4 rounded-full"></div>
-                            <p className="opacity-80 text-sm font-sans uppercase tracking-widest">{frontSubtitle}</p>
-                            <div className="mt-6 text-xs opacity-50 flex items-center gap-1">
-                                {isFlipped ? 'Tap to Flip Back' : 'Tap to Flip'} <ChevronRightIcon size={12}/>
-                            </div>
-                        </div>
-                        {/* Back */}
-                        <div className={`flip-card-back border-b-4 ${theme === 'dark' ? 'bg-emerald-900 border-emerald-400 text-white' : 'bg-emerald-50 border-emerald-600 text-slate-800'}`}>
-                            <p className="text-lg font-medium leading-relaxed">{backContent}</p>
-                        </div>
-                    </div>
-                </div>
-            );
-        };
-
-        const AccordionItem = ({ title, children, isOpen, onClick, theme }) => {
-            return (
-                <div className={`border-b ${theme === 'dark' ? 'border-slate-700' : 'border-slate-200'}`}>
-                    <button 
-                        className={`w-full py-5 px-4 flex justify-between items-center text-left transition-colors ${theme === 'dark' ? 'hover:bg-slate-800' : 'hover:bg-slate-50'}`}
-                        onClick={onClick}
-                    >
-                        <span className={`font-serif font-bold text-lg ${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-800'}`}>{title}</span>
-                        {isOpen ? <ChevronUpIcon size={20} /> : <ChevronDownIcon size={20} />}
-                    </button>
-                    <div 
-                        className={`overflow-hidden transition-all duration-300 ease-in-out ${isOpen ? 'max-h-48 opacity-100' : 'max-h-0 opacity-0'}`}
-                    >
-                        <div className={`p-4 pt-0 ${theme === 'dark' ? 'text-slate-300' : 'text-slate-600'}`}>
-                            {children}
-                        </div>
-                    </div>
-                </div>
-            );
-        };
-
-        const SectionHeader = ({ title, subtitle, theme }) => (
-            <div className="mb-12 border-l-4 border-emerald-500 pl-6">
-                <h2 className="text-3xl md:text-4xl font-serif font-bold tracking-tight mb-2">{title}</h2>
-                <p className={`text-lg md:text-xl font-light ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>{subtitle}</p>
-            </div>
+        const SectionHeading = ({ title, subtitle, align = "center" }) => (
+          React.createElement("div", { className: `mb-16 ${align === "left" ? "text-left" : "text-center"} animate-fade-in` },
+            React.createElement("h2", { className: "text-3xl md:text-4xl font-serif text-slate-900 mb-4" }, title),
+            React.createElement("div", { className: `h-0.5 w-16 bg-[#D4AF37] mb-6 ${align === "center" ? "mx-auto" : ""}` }),
+            subtitle && React.createElement("p", { className: "text-slate-500 max-w-2xl mx-auto leading-relaxed" }, subtitle)
+          )
         );
 
-        // --- MAIN APP ---
-        function App() {
-            const [lang, setLang] = useState('en');
-            const [theme, setTheme] = useState('dark');
-            const [isMenuOpen, setIsMenuOpen] = useState(false);
-            const [activeSection, setActiveSection] = useState('mindset');
-            const [activeAccordion, setActiveAccordion] = useState(null);
+        const AboutSection = () => {
+          return (
+            React.createElement("div", { className: "py-24 bg-white min-h-screen flex items-center" },
+              React.createElement("div", { className: "container mx-auto px-6" },
+                React.createElement("div", { className: "flex flex-col md:flex-row items-center gap-16" },
+                  React.createElement("div", { className: "w-full md:w-1/2 animate-slide-in-left" },
+                    React.createElement("div", { className: "relative" },
+                      React.createElement("img", { 
+                        src: "https://static.wixstatic.com/media/7a9f89_a604f0456e564d07b81029264b5d142c~mv2.png", 
+                        alt: "About Aura Sola", 
+                        className: "w-full h-[500px] object-cover shadow-xl rounded-sm"
+                      }),
+                      React.createElement("div", { className: "absolute -bottom-10 -right-10 bg-[#F9F9F9] p-8 hidden md:block max-w-xs shadow-lg border-l-4 border-[#D4AF37]" },
+                        React.createElement("p", { className: "font-serif italic text-slate-600 text-lg" }, "\"將精油瓶變成像精品香水瓶般的優雅。\"")
+                      )
+                    )
+                  ),
+                  React.createElement("div", { className: "w-full md:w-1/2 animate-slide-in-right" },
+                    React.createElement("span", { className: "text-[#D4AF37] uppercase tracking-widest text-sm font-semibold mb-2 block" }, "Our Story"),
+                    React.createElement("h2", { className: "text-4xl font-serif text-slate-900 mb-8" }, "幻香 Fantasy Scent"),
+                    React.createElement("p", { className: "text-slate-600 leading-loose mb-6" },
+                      "「幻香」由國際芳療師及視覺設計師創立的芳療選物品牌。我們相信香氣不只是嗅覺的體驗，更是空間的靈魂。"
+                    ),
+                    React.createElement("p", { className: "text-slate-600 leading-loose mb-8" },
+                      "AURA SOLA 是我們對理想生活的解答。結合感性體驗與理性工程，只為打造出心中最完美的擴香儀式。在簡約的設計中，我們探索香氣與美感的極致平衡。"
+                    ),
+                    React.createElement("div", { className: "grid grid-cols-2 gap-8 mt-8 border-t border-gray-100 pt-8" },
+                      React.createElement("div", null,
+                        React.createElement("h4", { className: "font-serif text-2xl text-slate-900 mb-2" }, "0%"),
+                        React.createElement("p", { className: "text-sm text-slate-500 uppercase tracking-wider" }, "需加水/加熱")
+                      ),
+                      React.createElement("div", null,
+                        React.createElement("h4", { className: "font-serif text-2xl text-slate-900 mb-2" }, "100%"),
+                        React.createElement("p", { className: "text-sm text-slate-500 uppercase tracking-wider" }, "純精油擴香")
+                      )
+                    )
+                  )
+                )
+              )
+            )
+          );
+        };
 
-            // Inputs
-            const [investment, setInvestment] = useState('');
-            const [equity, setEquity] = useState('');
-            const [valuation, setValuation] = useState(null);
-            
-            // Pitch
-            const [pitchData, setPitchData] = useState({ name: '', customer: '', problem: '', solution: '', traction: '', ask: '' });
-            const [pitchResult, setPitchResult] = useState('');
+        const FeatureCard = ({ icon: Icon, title, desc }) => (
+          React.createElement("div", { className: "bg-[#F8F9FA] p-8 hover:-translate-y-2 transition-transform duration-300 border-t-2 border-transparent hover:border-[#D4AF37] group h-full shadow-sm hover:shadow-md" },
+            React.createElement("div", { className: "w-12 h-12 bg-white rounded-full flex items-center justify-center mb-6 shadow-sm group-hover:bg-[#D4AF37] transition-colors" },
+              React.createElement(Icon, { className: "text-slate-800 group-hover:text-white transition-colors", size: 24 })
+            ),
+            React.createElement("h3", { className: "text-xl font-serif text-slate-900 mb-4" }, title),
+            React.createElement("p", { className: "text-slate-500 leading-relaxed text-sm text-justify" }, desc)
+          )
+        );
 
-            // Theme helpers
-            const bgMain = theme === 'dark' ? 'bg-slate-950' : 'bg-slate-50';
-            const textMain = theme === 'dark' ? 'text-slate-100' : 'text-slate-900';
-            const bgCard = theme === 'dark' ? 'bg-slate-800' : 'bg-white';
-            const accentText = theme === 'dark' ? 'text-emerald-400' : 'text-emerald-700';
+        const SolutionSection = () => {
+          return (
+            React.createElement("div", { className: "py-24 bg-white min-h-screen" },
+              React.createElement("div", { className: "container mx-auto px-6" },
+                React.createElement(SectionHeading, { 
+                  title: "解決方案與產品特色", 
+                  subtitle: "我們盤點了現行擴香產品的核心問題：阻塞、清潔麻煩、外型笨重。AURA SOLA 提出了一次性的解決方案。"
+                }),
+                
+                /* Features Grid */
+                React.createElement("div", { className: "grid grid-cols-1 md:grid-cols-3 gap-8 mb-20" },
+                  React.createElement(FeatureCard, { 
+                    icon: Wind,
+                    title: "純精油物理擴香",
+                    desc: "健康與純淨：純精油物理擴香，不加水、不加熱。適用坪數 10~20 坪。具備微光/無光模式，營造日夜不同的氛圍體驗。"
+                  }),
+                  React.createElement(FeatureCard, { 
+                    icon: Battery,
+                    title: "隱形磁吸充電",
+                    desc: "內建微型鋰電池、微型氣泵與控制晶片。採用隱形磁吸孔充電方案，連續運作 4-6 小時，間歇模式可達 3 天，隨處安放無拘束。"
+                  }),
+                  React.createElement(FeatureCard, { 
+                    icon: Droplet,
+                    title: "金色霧面陶瓷質感",
+                    desc: "噴頭採金色霧面陶瓷質感塗層，搭配流暢的曲線外型設計，讓精油瓶瞬間化身為像精品香水瓶般的優雅擺飾。"
+                  })
+                ),
 
-            const toggleLang = () => setLang(l => l === 'en' ? 'zh' : 'en');
-            const toggleTheme = () => setTheme(t => t === 'dark' ? 'light' : 'dark');
+                /* Product Images Gallery */
+                React.createElement("div", { className: "grid grid-cols-1 md:grid-cols-3 gap-4" },
+                  React.createElement("div", { className: "relative overflow-hidden group rounded-lg shadow-md aspect-[4/5]" },
+                    React.createElement("img", { 
+                      src: "https://static.wixstatic.com/media/7a9f89_a355b5c59cea425ba6973f985a4c0acc~mv2.png", 
+                      alt: "AURA SOLA Detail 1", 
+                      className: "w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                    }),
+                    React.createElement("div", { className: "absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" })
+                  ),
+                  React.createElement("div", { className: "relative overflow-hidden group rounded-lg shadow-md aspect-[4/5] mt-8 md:mt-0" },
+                    React.createElement("img", { 
+                      src: "https://static.wixstatic.com/media/7a9f89_e13eb5553b784a7e92f96cd8415d4063~mv2.png", 
+                      alt: "AURA SOLA Detail 2", 
+                      className: "w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                    }),
+                    React.createElement("div", { className: "absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" })
+                  ),
+                  React.createElement("div", { className: "relative overflow-hidden group rounded-lg shadow-md aspect-[4/5]" },
+                    React.createElement("img", { 
+                      src: "https://static.wixstatic.com/media/7a9f89_fb8543521dbb4eada50d6182627593dd~mv2.png", 
+                      alt: "AURA SOLA Detail 3", 
+                      className: "w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                    }),
+                    React.createElement("div", { className: "absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" })
+                  )
+                )
+              )
+            )
+          );
+        };
 
-            const calculateVal = () => {
-                const i = Number(investment);
-                const e = Number(equity);
-                if(i && e) {
-                    const post = i / (e/100);
-                    setValuation({ pre: post - i, post });
-                }
-            };
-
-            const generatePitch = () => {
-                const t = lang === 'en' 
-                    ? `Hi, we are ${pitchData.name || '___'}. We help ${pitchData.customer || '___'} solve ${pitchData.problem || '___'} with our ${pitchData.solution || '___'}. We have achieved ${pitchData.traction || '___'} and are looking for ${pitchData.ask || '___'} to scale.`
-                    : `你好，我們是 ${pitchData.name || '___'}。我們協助 ${pitchData.customer || '___'} 解決 ${pitchData.problem || '___'} 的問題。我們的解決方案是 ${pitchData.solution || '___'}。目前成績為 ${pitchData.traction || '___'}，正尋求 ${pitchData.ask || '___'} 資金以擴大規模。`;
-                setPitchResult(t);
-            };
-
-            const navItems = Object.keys(TEXTS.nav).map(key => ({
-                id: key,
-                label: TEXTS.nav[key][lang]
-            }));
-
-            return (
-                <div className={`min-h-screen font-sans transition-colors duration-300 ${bgMain} ${textMain}`}>
+        const PatentSection = () => {
+          return (
+            React.createElement("div", { className: "py-24 bg-slate-900 text-white min-h-screen relative flex items-center" },
+              React.createElement("div", { className: "absolute top-0 right-0 w-1/3 h-full bg-[#D4AF37]/10 skew-x-12 transform origin-top translate-x-20" }),
+              
+              React.createElement("div", { className: "container mx-auto px-6 relative z-10" },
+                React.createElement("div", { className: "flex flex-col md:flex-row gap-16" },
+                  React.createElement("div", { className: "w-full md:w-1/2 order-2 md:order-1 animate-slide-in-left" },
+                    React.createElement("span", { className: "text-[#D4AF37] uppercase tracking-widest text-sm font-semibold mb-2 block" }, "Unique Patent"),
+                    React.createElement("h2", { className: "text-4xl md:text-5xl font-serif mb-8" }, 
+                      "可替換式索拉花噴頭", React.createElement("br"),
+                      React.createElement("span", { className: "text-2xl italic text-gray-400" }, "Sola Flower Nozzle")
+                    ),
                     
-                    {/* Header */}
-                    <header className={`fixed w-full z-50 transition-all duration-300 border-b ${theme === 'dark' ? 'bg-slate-900/95 border-slate-700' : 'bg-white/95 border-slate-200'} backdrop-blur-sm`}>
-                        <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
-                            <div className="flex items-center gap-4">
-                                <button onClick={() => setIsMenuOpen(true)} className="p-2 rounded hover:bg-emerald-500/10 transition">
-                                    <MenuIcon className={accentText} />
-                                </button>
-                                <div className="flex flex-col">
-                                    <h1 className="text-lg font-bold font-serif tracking-wide leading-none uppercase">{TEXTS.header.title[lang]}</h1>
-                                    <span className="text-xs opacity-60 tracking-widest uppercase mt-0.5 hidden sm:block">{TEXTS.header.subtitle[lang]}</span>
-                                </div>
-                            </div>
-                            <div className="flex items-center gap-2">
-                                <button onClick={toggleLang} className={`flex items-center gap-1 px-3 py-1 rounded text-xs font-bold border transition ${theme === 'dark' ? 'border-slate-600 hover:bg-slate-800' : 'border-slate-300 hover:bg-slate-100'}`}>
-                                    <GlobeIcon size={14} /> {lang === 'en' ? 'ENG' : '繁中'}
-                                </button>
-                                <button onClick={toggleTheme} className={`p-2 rounded-full transition ${theme === 'dark' ? 'hover:bg-slate-800 text-yellow-400' : 'hover:bg-slate-100 text-slate-600'}`}>
-                                    {theme === 'dark' ? <MoonIcon size={18} /> : <SunIcon size={18} />}
-                                </button>
-                            </div>
-                        </div>
-                    </header>
+                    React.createElement("div", { className: "space-y-8" },
+                      React.createElement("div", { className: "flex items-start space-x-4" },
+                        React.createElement("div", { className: "mt-1" }, React.createElement(Flower, { className: "text-[#D4AF37]", size: 28 })),
+                        React.createElement("div", null,
+                          React.createElement("h3", { className: "text-xl font-medium mb-2" }, "免清潔、零阻塞"),
+                          React.createElement("p", { className: "text-gray-400 font-light leading-relaxed" },
+                            "全球首創將擴香噴頭與索拉花結合。解決傳統噴嘴堵塞痛點，無需拆洗，只需像換花一樣優雅替換。"
+                          )
+                        )
+                      ),
+                      
+                      React.createElement("div", { className: "flex items-start space-x-4" },
+                        React.createElement("div", { className: "mt-1" }, React.createElement(Target, { className: "text-[#D4AF37]", size: 28 })),
+                        React.createElement("div", null,
+                          React.createElement("h3", { className: "text-xl font-medium mb-2" }, "虹吸霧化結構專利"),
+                          React.createElement("p", { className: "text-gray-400 font-light leading-relaxed" },
+                            "將精油物理特性當成設計核心。獨家虹吸結構確保高黏度精油（如岩蘭草）也能順暢擴香。"
+                          )
+                        )
+                      ),
 
-                    {/* Hamburger Menu */}
-                    <div className={`fixed inset-0 z-[60] bg-black/60 backdrop-blur-sm transition-opacity ${isMenuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`} onClick={() => setIsMenuOpen(false)}>
-                        <div className={`absolute left-0 top-0 bottom-0 w-80 shadow-2xl transition-transform duration-300 ${isMenuOpen ? 'translate-x-0' : '-translate-x-full'} ${theme === 'dark' ? 'bg-slate-900 text-white' : 'bg-white text-slate-900'}`} onClick={e => e.stopPropagation()}>
-                            <div className="p-6 flex justify-between items-center border-b border-emerald-500/20">
-                                <h2 className="font-serif text-xl font-bold text-emerald-500">Workshop Menu</h2>
-                                <button onClick={() => setIsMenuOpen(false)}><XIcon /></button>
-                            </div>
-                            <nav className="p-6 space-y-2">
-                                {navItems.map(item => (
-                                    <button
-                                        key={item.id}
-                                        onClick={() => { setActiveSection(item.id); setIsMenuOpen(false); }}
-                                        className={`w-full text-left py-3 px-4 rounded transition-all ${activeSection === item.id ? 'bg-emerald-600 text-white font-bold pl-6 border-l-4 border-white' : 'hover:bg-emerald-500/10'}`}
-                                    >
-                                        {item.label}
-                                    </button>
-                                ))}
-                            </nav>
-                            <div className="absolute bottom-10 left-6 text-xs opacity-40">
-                                Strategic Thinking for Leaders
-                            </div>
-                        </div>
-                    </div>
+                      React.createElement("div", { className: "flex items-start space-x-4" },
+                        React.createElement("div", { className: "mt-1" }, React.createElement(Award, { className: "text-[#D4AF37]", size: 28 })),
+                        React.createElement("div", null,
+                          React.createElement("h3", { className: "text-xl font-medium mb-2" }, "儀式感美學"),
+                          React.createElement("p", { className: "text-gray-400 font-light leading-relaxed" },
+                            "「換花 = 換香氣」。索拉花隨著精油浸潤會呈現獨特紋理與色澤，是視覺與嗅覺的雙重饗宴。"
+                          )
+                        )
+                      ),
 
-                    {/* Main Content */}
-                    <main className="pt-24 pb-20 max-w-7xl mx-auto px-4 min-h-[85vh]">
-                        
-                        {/* MINDSET */}
-                        {activeSection === 'mindset' && (
-                            <div className="animate-fadeIn">
-                                <SectionHeader title={CONTENT.mindset.title[lang]} subtitle={CONTENT.mindset.desc[lang]} theme={theme} />
-                                <div className="grid md:grid-cols-2 gap-8">
-                                    {CONTENT.mindset.cards.map((card, idx) => {
-                                        const CardIcon = card.icon;
-                                        return (
-                                            <div key={idx} className={`p-8 rounded-sm border-t-4 shadow-lg ${bgCard} ${card.style}`}>
-                                                <div className="flex items-center gap-3 mb-6">
-                                                    <CardIcon size={32} className="text-emerald-500" />
-                                                    <h3 className="text-2xl font-serif font-bold">{card.title[lang]}</h3>
-                                                </div>
-                                                <ul className="space-y-3">
-                                                    {card.list[lang].map((item, i) => (
-                                                        <li key={i} className="flex items-start gap-2 opacity-90">
-                                                            <span className="text-emerald-500 font-bold">›</span> {item}
-                                                        </li>
-                                                    ))}
-                                                </ul>
-                                            </div>
-                                        );
-                                    })}
-                                </div>
-                                <div className="mt-8 p-6 bg-emerald-900/20 border border-emerald-500/30 rounded-sm">
-                                    <h4 className="font-bold text-emerald-500 mb-2 uppercase tracking-wide text-sm">Consultant Insight</h4>
-                                    <p className="opacity-80 leading-relaxed italic">
-                                        {lang === 'en' ? "Don't just run a business; build an asset. Consider spinning off high-growth units to raise external capital while keeping the core business safe." : "不要只是經營生意，要建立資產。考慮將高成長的部門「內部創業」獨立分拆，既能對外募資，又能保障母公司核心業務的安全。"}
-                                    </p>
-                                </div>
-                            </div>
-                        )}
+                      /* New Sola Flower Material Description */
+                      React.createElement("div", { className: "mt-8" },
+                        /* 文字說明區塊 */
+                        React.createElement("div", { className: "p-6 bg-white/5 rounded-xl border border-white/10 relative overflow-hidden group mb-6" },
+                           React.createElement("div", { className: "absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity" },
+                              React.createElement(Leaf, { size: 60 })
+                           ),
+                           React.createElement("h4", { className: "text-[#D4AF37] text-md font-semibold mb-3 tracking-wide" },
+                             "#天然永續素材，可重複使用、可染色、香氛持久"
+                           ),
+                           React.createElement("p", { className: "text-gray-300 font-light text-sm leading-relaxed text-justify" },
+                             "索拉花 （Sola Flower），又稱蓪草花、擴香花，是一種由「索拉木」或「蓪草」等植物的莖部刨製成的手工花材，質感輕薄。"
+                           )
+                        ),
 
-                        {/* STAGES (Flip Cards) */}
-                        {activeSection === 'stages' && (
-                            <div className="animate-fadeIn">
-                                <SectionHeader title={CONTENT.stages.title[lang]} subtitle={CONTENT.stages.desc[lang]} theme={theme} />
-                                <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                                    {CONTENT.stages.items.map((item, idx) => (
-                                        <FlipCard 
-                                            key={idx}
-                                            theme={theme}
-                                            frontTitle={item.stage[lang]}
-                                            frontSubtitle={item.goal[lang]}
-                                            backContent={item.detail[lang]}
-                                        />
-                                    ))}
-                                </div>
-                            </div>
-                        )}
+                        /* 獨立圖片區塊 - 移出上方的 div 框架 */
+                        React.createElement("div", { className: "rounded-xl overflow-hidden border border-white/10 shadow-lg relative group" },
+                           React.createElement("img", { 
+                             src: "https://static.wixstatic.com/media/7a9f89_845d1e0d027d449c8655fbdefcf13034~mv2.jpg", 
+                             alt: "Sola Flower Texture Detail", 
+                             className: "w-full h-auto object-cover transition-transform duration-700 group-hover:scale-105"
+                           }),
+                           React.createElement("div", { className: "absolute inset-0 bg-gradient-to-t from-black/40 to-transparent opacity-60" }),
+                           React.createElement("div", { className: "absolute bottom-4 left-4" },
+                              React.createElement("span", { className: "text-xs font-light text-white/80 uppercase tracking-widest" }, "Handcrafted Texture")
+                           )
+                        )
+                      )
+                    )
+                  ),
+                  
+                  React.createElement("div", { className: "w-full md:w-1/2 order-1 md:order-2 flex flex-col space-y-6 animate-slide-in-right" },
+                     /* Mockup of the nozzle mechanism */
+                    React.createElement("div", { className: "relative rounded-lg overflow-hidden border border-white/10 shadow-2xl" },
+                      React.createElement("img", { 
+                        src: "https://static.wixstatic.com/media/7a9f89_72358e16fdf54c4d8d8e4b56b77e274d~mv2.png", 
+                        alt: "Sola Flower Mechanism", 
+                        className: "w-full h-auto opacity-90 hover:scale-105 transition-transform duration-700"
+                      }),
+                      React.createElement("div", { className: "absolute bottom-6 left-6" },
+                        React.createElement("div", { className: "bg-white/10 backdrop-blur px-4 py-2 rounded text-xs uppercase tracking-widest text-white border border-white/20" },
+                          "Patent Pending"
+                        )
+                      )
+                    ),
 
-                        {/* INVESTORS (Flip Cards) */}
-                        {activeSection === 'investors' && (
-                            <div className="animate-fadeIn">
-                                <SectionHeader title={CONTENT.investors.title[lang]} subtitle={CONTENT.investors.desc[lang]} theme={theme} />
-                                <div className="grid sm:grid-cols-2 gap-6">
-                                    {CONTENT.investors.items.map((item, idx) => (
-                                        <FlipCard 
-                                            key={idx}
-                                            theme={theme}
-                                            frontTitle={item.type[lang]}
-                                            frontSubtitle="Investor Profile"
-                                            backContent={item.desc[lang]}
-                                        />
-                                    ))}
-                                </div>
-                            </div>
-                        )}
+                    /* Existing Image for Sola Flower Material */
+                     React.createElement("div", { className: "relative rounded-lg overflow-hidden border border-white/10 shadow-2xl" },
+                      React.createElement("img", { 
+                        src: "https://static.wixstatic.com/media/7a9f89_2aadb4d9a4444045971038b9b634a36c~mv2.jpg", 
+                        alt: "Sola Flower Material", 
+                        className: "w-full h-auto opacity-90 hover:scale-105 transition-transform duration-700"
+                      }),
+                       React.createElement("div", { className: "absolute bottom-6 right-6" },
+                        React.createElement("div", { className: "bg-[#D4AF37]/80 backdrop-blur px-4 py-2 rounded text-xs uppercase tracking-widest text-white shadow-lg" },
+                          "Natural Material"
+                        )
+                      )
+                    ),
 
-                        {/* VALUATION */}
-                        {activeSection === 'valuation' && (
-                            <div className="animate-fadeIn">
-                                <SectionHeader title={TEXTS.nav.valuation[lang]} subtitle={lang === 'en' ? "Calculate your Pre & Post Money Valuation" : "計算您的投前與投後估值"} theme={theme} />
-                                <div className="grid md:grid-cols-12 gap-8">
-                                    <div className={`md:col-span-5 p-8 rounded shadow-lg ${bgCard}`}>
-                                        <h3 className="font-serif font-bold text-xl mb-6 flex items-center gap-2">
-                                            <CalculatorIcon className="text-emerald-500"/> {lang === 'en' ? 'Inputs' : '輸入參數'}
-                                        </h3>
-                                        <div className="space-y-6">
-                                            <div>
-                                                <label className="block text-xs font-bold uppercase tracking-wider mb-2 opacity-70">{lang === 'en' ? 'Investment Amount' : '投資金額 (萬)'}</label>
-                                                <input 
-                                                    type="number" 
-                                                    value={investment}
-                                                    onChange={e => setInvestment(e.target.value)}
-                                                    className={`w-full p-3 rounded border bg-transparent outline-none focus:ring-2 ring-emerald-500 transition ${theme === 'dark' ? 'border-slate-600' : 'border-slate-300'}`}
-                                                    placeholder="1000"
-                                                />
-                                            </div>
-                                            <div>
-                                                <label className="block text-xs font-bold uppercase tracking-wider mb-2 opacity-70">{lang === 'en' ? 'Equity Offered (%)' : '釋出股份 (%)'}</label>
-                                                <input 
-                                                    type="number" 
-                                                    value={equity}
-                                                    onChange={e => setEquity(e.target.value)}
-                                                    className={`w-full p-3 rounded border bg-transparent outline-none focus:ring-2 ring-emerald-500 transition ${theme === 'dark' ? 'border-slate-600' : 'border-slate-300'}`}
-                                                    placeholder="20"
-                                                />
-                                            </div>
-                                            <button 
-                                                onClick={calculateVal}
-                                                className="w-full py-4 bg-emerald-600 hover:bg-emerald-700 text-white font-bold uppercase tracking-widest transition rounded-sm shadow-lg"
-                                            >
-                                                {lang === 'en' ? 'Calculate' : '開始計算'}
-                                            </button>
-                                        </div>
-                                    </div>
+                    /* Moved Image - 新增至此處 */
+                    React.createElement("div", { className: "relative rounded-lg overflow-hidden border border-white/10 shadow-2xl" },
+                      React.createElement("img", { 
+                        src: "https://static.wixstatic.com/media/7a9f89_a5bbe54deb554f4faa97fc5bf21be79a~mv2.png", 
+                        alt: "Sola Material Detail", 
+                        className: "w-full h-auto opacity-90 hover:scale-105 transition-transform duration-700"
+                      })
+                    )
+                  )
+                )
+              )
+            )
+          );
+        };
 
-                                    <div className="md:col-span-7 flex flex-col justify-center space-y-4">
-                                        <div className={`p-6 border-l-8 ${bgCard} ${valuation ? 'border-emerald-500' : 'border-slate-600'}`}>
-                                            <div className="text-sm uppercase tracking-widest opacity-60 mb-1">Post-Money Valuation</div>
-                                            <div className="text-4xl md:text-5xl font-serif font-bold text-emerald-500">
-                                                {valuation ? valuation.post.toLocaleString() : '---'}
-                                            </div>
-                                            <div className="text-xs opacity-50 mt-1">{lang === 'en' ? '= Investment / Equity %' : '= 投資額 / 釋出比例'}</div>
-                                        </div>
-                                        <div className={`p-6 border-l-8 ${bgCard} ${valuation ? 'border-blue-500' : 'border-slate-600'}`}>
-                                            <div className="text-sm uppercase tracking-widest opacity-60 mb-1">Pre-Money Valuation</div>
-                                            <div className="text-4xl md:text-5xl font-serif font-bold text-blue-500">
-                                                {valuation ? valuation.pre.toLocaleString() : '---'}
-                                            </div>
-                                            <div className="text-xs opacity-50 mt-1">{lang === 'en' ? '= Post-Money - Investment' : '= 投後估值 - 投資額'}</div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        )}
+        const FundingTier = ({ title, price, discount, items, limit, highlight = false }) => (
+          React.createElement("div", { className: `p-8 border relative flex flex-col h-full transition-all duration-300 ${highlight ? 'border-[#D4AF37] shadow-xl bg-white scale-105 z-10' : 'border-gray-200 bg-gray-50 hover:border-gray-300'}` },
+            highlight && React.createElement("div", { className: "absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-[#D4AF37] text-white text-xs px-3 py-1 uppercase tracking-widest font-bold" },
+              "Most Popular"
+            ),
+            React.createElement("h3", { className: "text-xl font-serif text-slate-900 mb-2" }, title),
+            React.createElement("div", { className: "flex items-baseline mb-4" },
+              React.createElement("span", { className: "text-sm text-gray-400 line-through mr-2" }, 
+                `NT$ ${Math.round(price / (parseInt(discount)/100 * 0.1 + (discount.includes('折') ? parseInt(discount)/100 : 0)) * 10).toLocaleString()}`
+              ),
+              React.createElement("span", { className: "text-3xl font-bold text-[#D4AF37]" }, `NT$ ${price.toLocaleString()}`)
+            ),
+            React.createElement("div", { className: "mb-6" },
+              React.createElement("span", { className: "bg-slate-900 text-white text-xs px-2 py-1 rounded" }, discount),
+              React.createElement("span", { className: "ml-2 text-xs text-slate-500" }, `限量 ${limit} 組`)
+            ),
+            React.createElement("ul", { className: "space-y-3 mb-8 flex-1" },
+              items.map((item, idx) => (
+                React.createElement("li", { key: idx, className: "flex items-start text-sm text-slate-600" },
+                  React.createElement(ChevronRight, { size: 16, className: "text-[#D4AF37] mr-1 flex-shrink-0 mt-0.5" }),
+                  item
+                )
+              ))
+            ),
+            React.createElement("button", { className: `w-full py-3 text-sm uppercase tracking-widest transition-colors ${highlight ? 'bg-[#D4AF37] text-white hover:bg-[#b5952f]' : 'bg-slate-900 text-white hover:bg-slate-800'}` },
+              "支持此方案"
+            )
+          )
+        );
 
-                        {/* PITCH DECK */}
-                        {activeSection === 'deck' && (
-                            <div className="animate-fadeIn">
-                                <SectionHeader title={CONTENT.deck.title[lang]} subtitle={CONTENT.deck.desc[lang]} theme={theme} />
-                                <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-4">
-                                    {CONTENT.deck.slides.map((slide, idx) => (
-                                        <div key={idx} className="h-48">
-                                            <FlipCard 
-                                                theme={theme}
-                                                frontTitle={slide.title[lang]}
-                                                frontSubtitle="Tap for Details"
-                                                backContent={slide.content[lang]}
-                                            />
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
+        const ProgressBar = ({ current, target, percentage }) => (
+          React.createElement("div", { className: "mb-12" },
+            React.createElement("div", { className: "flex justify-between items-end mb-2" },
+              React.createElement("div", null,
+                React.createElement("span", { className: "text-4xl font-serif font-bold text-[#D4AF37]" }, `${percentage}%`),
+                React.createElement("span", { className: "text-slate-500 ml-2 text-sm" }, "達標率")
+              ),
+              React.createElement("div", { className: "text-right" },
+                React.createElement("p", { className: "text-slate-900 font-medium" }, `NT$ ${current}`),
+                React.createElement("p", { className: "text-slate-400 text-xs" }, `目標 NT$ ${target}`)
+              )
+            ),
+            React.createElement("div", { className: "w-full bg-gray-200 h-2 rounded-full overflow-hidden" },
+              React.createElement("div", { className: "bg-[#D4AF37] h-full rounded-full transition-all duration-1000 ease-out", style: { width: `${Math.min(percentage, 100)}%` } })
+            )
+          )
+        );
 
-                        {/* PITCH GENERATOR (Fixed Translations) */}
-                        {activeSection === 'pitch' && (
-                            <div className="animate-fadeIn">
-                                <SectionHeader title={TEXTS.nav.pitch[lang]} subtitle={lang === 'en' ? "Generate your script in 30 seconds" : "30秒生成您的講稿"} theme={theme} />
-                                <div className="grid lg:grid-cols-2 gap-12">
-                                    <div className="space-y-4">
-                                        {['name', 'customer', 'problem', 'solution', 'traction', 'ask'].map((field) => (
-                                            <div key={field}>
-                                                <label className="text-xs font-bold uppercase opacity-60 ml-1">
-                                                    {PITCH_FIELDS[field][lang]}
-                                                </label>
-                                                <input 
-                                                    value={pitchData[field]}
-                                                    onChange={e => setPitchData({...pitchData, [field]: e.target.value})}
-                                                    className={`w-full p-3 rounded border-b-2 bg-transparent focus:border-emerald-500 outline-none transition ${theme === 'dark' ? 'border-slate-700' : 'border-slate-300'}`}
-                                                    placeholder={PITCH_FIELDS[field].placeholder[lang]}
-                                                />
-                                            </div>
-                                        ))}
-                                        <button 
-                                            onClick={generatePitch}
-                                            className="w-full py-4 mt-4 bg-emerald-600 hover:bg-emerald-700 text-white font-bold uppercase tracking-widest transition rounded-sm shadow-lg"
-                                        >
-                                            {lang === 'en' ? 'Generate Script' : '生成講稿'}
-                                        </button>
-                                    </div>
-                                    <div className={`p-8 rounded shadow-2xl border ${theme === 'dark' ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'}`}>
-                                        <h3 className="font-serif font-bold text-xl mb-6 text-emerald-500">{lang === 'en' ? 'Your Script' : '您的講稿'}</h3>
-                                        <p className="text-lg leading-loose font-medium opacity-90 whitespace-pre-line">
-                                            {pitchResult || (lang === 'en' ? "Fill in the fields on the left to generate..." : "請填寫左側欄位以生成內容...")}
-                                        </p>
-                                        {pitchResult && (
-                                            <button onClick={() => navigator.clipboard.writeText(pitchResult)} className="mt-6 flex items-center gap-2 text-sm opacity-60 hover:opacity-100 hover:text-emerald-500 transition">
-                                                <AwardIcon size={16} /> {lang === 'en' ? 'Copy to Clipboard' : '複製到剪貼簿'}
-                                            </button>
-                                        )}
-                                    </div>
-                                </div>
-                            </div>
-                        )}
+        const CrowdfundingSection = () => {
+          return (
+            React.createElement("div", { className: "py-24 bg-[#FAFAFA] min-h-screen" },
+              React.createElement("div", { className: "container mx-auto px-6" },
+                React.createElement(SectionHeading, { 
+                  title: "預購專案", 
+                  subtitle: "加入我們的創業旅程，讓 AURA SOLA 成為您生活中的第一道香氣儀式。"
+                }),
 
-                        {/* TERM SHEET */}
-                        {activeSection === 'terms' && (
-                            <div className="animate-fadeIn">
-                                <SectionHeader title={CONTENT.terms.title[lang]} subtitle={lang === 'en' ? "Key clauses you must know" : "創辦人必知的關鍵條款"} theme={theme} />
-                                <div className={`max-w-3xl mx-auto rounded-lg overflow-hidden border ${theme === 'dark' ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'}`}>
-                                    {CONTENT.terms.items.map((item, idx) => (
-                                        <AccordionItem 
-                                            key={idx}
-                                            title={item.term[lang]}
-                                            isOpen={activeAccordion === idx}
-                                            onClick={() => setActiveAccordion(activeAccordion === idx ? null : idx)}
-                                            theme={theme}
-                                        >
-                                            {item.desc[lang]}
-                                        </AccordionItem>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
+                /* Status Bar */
+                React.createElement("div", { className: "max-w-4xl mx-auto bg-white p-8 shadow-sm mb-16 border border-gray-100 rounded-xl" },
+                   React.createElement(ProgressBar, { current: "850,000", target: "2,000,000", percentage: 42 }),
+                   
+                   React.createElement("div", { className: "grid grid-cols-1 md:grid-cols-3 gap-6 text-center" },
+                     React.createElement("div", { className: "p-4 border border-gray-100 rounded bg-gray-50" },
+                       React.createElement("h4", { className: "text-sm text-slate-500 mb-1" }, "目標 100%"),
+                       React.createElement("p", { className: "font-serif text-lg text-slate-900" }, "NT$ 200萬"),
+                       React.createElement("p", { className: "text-xs text-[#D4AF37] mt-1" }, "贈送專屬收納絨布袋")
+                     ),
+                     React.createElement("div", { className: "p-4 border border-gray-100 rounded opacity-50" },
+                       React.createElement("h4", { className: "text-sm text-slate-500 mb-1" }, "目標 200%"),
+                       React.createElement("p", { className: "font-serif text-lg text-slate-900" }, "NT$ 400萬"),
+                       React.createElement("p", { className: "text-xs text-slate-400 mt-1" }, "解鎖新色「月光銀」")
+                     ),
+                     React.createElement("div", { className: "p-4 border border-gray-100 rounded opacity-50" },
+                       React.createElement("h4", { className: "text-sm text-slate-500 mb-1" }, "目標 300%"),
+                       React.createElement("p", { className: "font-serif text-lg text-slate-900" }, "NT$ 600萬"),
+                       React.createElement("p", { className: "text-xs text-slate-400 mt-1" }, "調香師聯名精油")
+                     )
+                   )
+                ),
 
-                    </main>
+                /* Pricing Tiers */
+                React.createElement("div", { className: "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-24" },
+                  React.createElement(FundingTier, { 
+                    title: "【超早鳥】極致體驗組",
+                    price: 2680,
+                    discount: "55折",
+                    limit: "200",
+                    highlight: true,
+                    items: ["主機 x1", "琥珀瓶 x1", "索拉花噴頭 x3 (半年份)", "磁吸充電飾品 x1"]
+                  }),
+                  React.createElement(FundingTier, { 
+                    title: "【早鳥】優雅入門組",
+                    price: 1980,
+                    discount: "6折",
+                    limit: "500",
+                    items: ["主機 x1", "琥珀瓶 x1", "索拉花噴頭 x1"]
+                  }),
+                  React.createElement(FundingTier, { 
+                    title: "【雙人】共享儀式組",
+                    price: 3880,
+                    discount: "58折",
+                    limit: "300",
+                    items: ["主機 x2", "琥珀瓶 x2", "索拉花噴頭 x2", "磁吸充電 x2"]
+                  }),
+                  React.createElement(FundingTier, { 
+                    title: "【訂閱制】香氛年票",
+                    price: 1200,
+                    discount: "5折",
+                    limit: "100",
+                    items: ["索拉花噴頭 x12", "每月配送一朵", "含季節限定款花型"]
+                  })
+                ),
 
-                    {/* Footer with Correct Link */}
-                    <footer className={`border-t py-12 ${theme === 'dark' ? 'bg-slate-950 border-slate-800' : 'bg-slate-100 border-slate-300'}`}>
-                        <div className="max-w-7xl mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-4 text-xs tracking-widest uppercase opacity-50 relative z-50">
-                            <div>{TEXTS.footer.copyright}</div>
-                            <div className="flex gap-4">
-                                <span>{TEXTS.footer.version}</span>
-                                <a 
-                                    href="https://www.ibs.ncnu.edu.tw/index.php/faculty/tenured-professor/299-smlo" 
-                                    target="_blank" 
-                                    rel="noopener noreferrer"
-                                    className="hover:text-emerald-500 transition border-b border-transparent hover:border-emerald-500 pb-0.5 cursor-pointer"
-                                    style={{ pointerEvents: 'auto' }}
-                                >
-                                    {TEXTS.footer.editor[lang]}
-                                </a>
-                            </div>
-                        </div>
-                    </footer>
-                </div>
-            );
-        }
+                /* Funds Allocation */
+                React.createElement("div", { className: "flex flex-col md:flex-row items-center gap-12 max-w-5xl mx-auto mb-16" },
+                   React.createElement("div", { className: "w-full md:w-1/2" },
+                     React.createElement("h3", { className: "text-2xl font-serif text-slate-900 mb-6" }, "資金分配規劃"),
+                     React.createElement("p", { className: "text-slate-600 mb-8 leading-relaxed" },
+                       "您的每一分贊助，我們都將透明地用於產品實現。其中生產製造佔比最高 (45%)，以確保達到精品級的工藝水準。"
+                     ),
+                     React.createElement("ul", { className: "space-y-4" },
+                       [
+                         { label: "生產與製造", val: "45%", color: "bg-[#002147]" },
+                         { label: "研發與優化", val: "20%", color: "bg-[#D4AF37]" },
+                         { label: "行銷與廣告", val: "20%", color: "bg-gray-400" },
+                         { label: "物流與營運", val: "10%", color: "bg-gray-300" },
+                         { label: "預備金", val: "5%", color: "bg-gray-200" }
+                       ].map((item, idx) => (
+                         React.createElement("li", { key: idx, className: "flex items-center justify-between text-sm border-b border-gray-100 pb-2" },
+                           React.createElement("div", { className: "flex items-center" },
+                             React.createElement("span", { className: `w-3 h-3 rounded-full mr-3 ${item.color}` }),
+                             React.createElement("span", { className: "text-slate-700" }, item.label)
+                           ),
+                           React.createElement("span", { className: "font-bold text-slate-900" }, item.val)
+                         )
+                       ))
+                     )
+                   ),
+                   React.createElement("div", { className: "w-full md:w-1/2 flex justify-center" },
+                     /* Simple CSS Pie Chart representation using conic-gradient */
+                     React.createElement("div", { 
+                       className: "w-64 h-64 rounded-full shadow-inner relative",
+                       style: {
+                         background: `conic-gradient(
+                           #002147 0% 45%, 
+                           #D4AF37 45% 65%, 
+                           #9CA3AF 65% 85%, 
+                           #D1D5DB 85% 95%, 
+                           #E5E7EB 95% 100%
+                         )`
+                       }
+                     },
+                       React.createElement("div", { className: "absolute inset-0 m-12 bg-[#FAFAFA] rounded-full flex items-center justify-center shadow-md" },
+                         React.createElement("div", { className: "text-center" },
+                            React.createElement(PieChart, { className: "mx-auto text-slate-400 mb-1", size: 24 }),
+                            React.createElement("span", { className: "text-xs text-slate-400" }, "Total Goal"),
+                            React.createElement("p", { className: "font-bold text-slate-800" }, "NT$ 2M")
+                         )
+                       )
+                     )
+                   )
+                ),
 
-        const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<App />);
+                /* New Business Model Link Section */
+                React.createElement("div", { className: "max-w-3xl mx-auto text-center border-t border-gray-200 pt-12" },
+                   React.createElement("p", { className: "text-slate-500 mb-6 italic" }, "想更深入了解我們的獲利模式與未來願景嗎？"),
+                   React.createElement("a", { 
+                     href: "https://gemini.google.com/share/185a2b6ad070", 
+                     target: "_blank", 
+                     rel: "noopener noreferrer",
+                     className: "inline-flex items-center space-x-2 border border-[#D4AF37] text-[#D4AF37] px-8 py-3 rounded-full hover:bg-[#D4AF37] hover:text-white transition-all duration-300 uppercase tracking-widest text-sm"
+                   },
+                     React.createElement("span", null, "瞭解商業模式"),
+                     React.createElement(ChevronRight, { size: 16 })
+                   )
+                )
+
+              )
+            )
+          );
+        };
+
+        const TeamMember = ({ role, title, desc }) => (
+          React.createElement("div", { className: "text-center px-4" },
+            React.createElement("div", { className: "w-24 h-24 mx-auto bg-gray-200 rounded-full mb-6 overflow-hidden border-2 border-white shadow-lg" },
+               /* Placeholder avatar */
+               React.createElement("div", { className: "w-full h-full bg-slate-300 flex items-center justify-center text-slate-500" },
+                 React.createElement(Users, { size: 32 })
+               )
+            ),
+            React.createElement("h4", { className: "text-lg font-serif text-slate-900 mb-1" }, title),
+            React.createElement("p", { className: "text-xs uppercase tracking-widest text-[#D4AF37] mb-3" }, role),
+            React.createElement("p", { className: "text-sm text-slate-500 leading-relaxed max-w-xs mx-auto" }, desc)
+          )
+        );
+
+        const TeamSection = () => {
+          return (
+            React.createElement("div", { className: "py-24 bg-white min-h-screen" },
+              React.createElement("div", { className: "container mx-auto px-6" },
+                React.createElement(SectionHeading, { 
+                  title: "核心團隊", 
+                  subtitle: "一群對香氛與設計充滿執著的跨領域專家，只為打造出完美的擴香儀式。"
+                }),
+                
+                React.createElement("div", { className: "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12" },
+                  React.createElement(TeamMember, { 
+                    title: "首席香氛顧問", 
+                    role: "英國 IFA 國際芳療師",
+                    desc: "負責霧化效能測試，確保每一滴精油保留其嗅覺層次與療癒價值。監製季節限定香氣配方。"
+                  }),
+                  React.createElement(TeamMember, { 
+                    title: "設計總監", 
+                    role: "Red Dot Award Winner",
+                    desc: "曾獲德國紅點設計大獎肯定，擅長將「減法美學」融入生活用品，主導產品外觀與使用者體驗。"
+                  }),
+                  React.createElement(TeamMember, { 
+                    title: "產品研發總監", 
+                    role: "資深產品設計師",
+                    desc: "擁有豐富消費性電子開發經驗。成功開發專利「虹吸式花朵模組」與「隱形磁吸」結構。"
+                  }),
+                  React.createElement(TeamMember, { 
+                    title: "品牌營運團隊", 
+                    role: "FMCG & 精品行銷",
+                    desc: "匯聚來自精品與生活風格產業的資深行銷人，精準定位市場策略，將優雅體驗推向全球。"
+                  })
+                )
+              )
+            )
+          );
+        };
+
+        const Footer = () => {
+          return (
+            React.createElement("footer", { className: "bg-[#002147] text-white py-16 mt-auto" },
+              React.createElement("div", { className: "container mx-auto px-6" },
+                React.createElement("div", { className: "grid grid-cols-1 md:grid-cols-4 gap-12 mb-12 border-b border-white/10 pb-12" },
+                  React.createElement("div", { className: "col-span-1 md:col-span-2" },
+                    React.createElement("h2", { className: "text-3xl font-serif mb-6 tracking-wider" }, "AURA SOLA"),
+                    React.createElement("p", { className: "text-gray-400 max-w-md leading-relaxed mb-6" },
+                      "在呼吸之間，遇見靜靜盛放的自己。", React.createElement("br"),
+                      "AURA SOLA 致力於將傳統擴香設備轉化為居家生活的情緒設計。"
+                    ),
+                    React.createElement("div", { className: "flex space-x-4" },
+                      React.createElement("a", { href: "#", className: "w-10 h-10 rounded-full border border-white/20 flex items-center justify-center hover:bg-[#D4AF37] hover:border-[#D4AF37] transition-colors" },
+                        React.createElement("span", { className: "sr-only" }, "Facebook"),
+                        React.createElement("span", { className: "font-serif" }, "F")
+                      ),
+                      React.createElement("a", { href: "#", className: "w-10 h-10 rounded-full border border-white/20 flex items-center justify-center hover:bg-[#D4AF37] hover:border-[#D4AF37] transition-colors" },
+                        React.createElement("span", { className: "sr-only" }, "Instagram"),
+                        React.createElement("span", { className: "font-serif" }, "I")
+                      )
+                    )
+                  ),
+                  
+                  React.createElement("div", null,
+                    React.createElement("h4", { className: "text-[#D4AF37] uppercase tracking-widest text-sm font-semibold mb-6" }, "Contact"),
+                    React.createElement("ul", { className: "space-y-4 text-gray-400 text-sm" },
+                      React.createElement("li", null, "hello@aurasola.com"),
+                      React.createElement("li", null, "+886 2 1234 5678"),
+                      React.createElement("li", null, "台北市信義區松高路123號")
+                    )
+                  ),
+
+                  React.createElement("div", null,
+                    React.createElement("h4", { className: "text-[#D4AF37] uppercase tracking-widest text-sm font-semibold mb-6" }, "Links"),
+                    React.createElement("ul", { className: "space-y-4 text-gray-400 text-sm" },
+                      React.createElement("li", null, React.createElement("a", { href: "#", className: "hover:text-white transition-colors" }, "品牌故事")),
+                      React.createElement("li", null, React.createElement("a", { href: "#", className: "hover:text-white transition-colors" }, "募資計畫")),
+                      React.createElement("li", null, React.createElement("a", { href: "#", className: "hover:text-white transition-colors" }, "常見問題")),
+                      React.createElement("li", null, React.createElement("a", { href: "#", className: "hover:text-white transition-colors" }, "隱私權政策"))
+                    )
+                  )
+                ),
+                
+                React.createElement("div", { className: "flex flex-col md:flex-row justify-between items-center text-xs text-gray-500" },
+                  React.createElement("p", null, "© 2026 AURA SOLA Inc. All rights reserved."),
+                  React.createElement("p", { className: "mt-2 md:mt-0" }, "Designed for Pitch Presentation")
+                )
+              )
+            )
+          );
+        };
+
+        // Main App Render
+        const App = () => {
+          const [activeTab, setActiveTab] = useState('home');
+
+          useEffect(() => {
+            // 確保每次切換頁籤時，視窗滾動到最上方
+            window.scrollTo(0, 0);
+          }, [activeTab]);
+
+          return (
+            React.createElement("div", { className: "font-sans text-slate-900 bg-white selection:bg-[#D4AF37] selection:text-white flex flex-col min-h-screen" },
+              React.createElement(Navigation, { activeTab: activeTab, setActiveTab: setActiveTab }),
+              
+              /* Content Area with Top Padding for Fixed Nav */
+              React.createElement("main", { className: "flex-grow pt-20" },
+                activeTab === 'home' && React.createElement(HeroSection, { onExploreClick: () => setActiveTab('about') }),
+                activeTab === 'about' && React.createElement(AboutSection),
+                activeTab === 'solution' && React.createElement(SolutionSection),
+                activeTab === 'patent' && React.createElement(PatentSection),
+                activeTab === 'crowdfunding' && React.createElement(CrowdfundingSection),
+                activeTab === 'team' && React.createElement(TeamSection)
+              ),
+
+              /* Footer 只在非首頁顯示，或根據需求調整 */
+              activeTab !== 'home' && React.createElement(Footer)
+            )
+          );
+        };
+
+        const root = createRoot(document.getElementById('root'));
+        root.render(React.createElement(App));
     </script>
 </body>
 </html>
