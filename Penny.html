@@ -1,0 +1,2086 @@
+<!DOCTYPE html>
+
+<html lang="zh-TW">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>AURA
+SOLA 創業募資計畫</title>
+
+<!-- Tailwind CSS -->
+
+<script src="https://cdn.tailwindcss.com"></script>
+
+<!-- 自定義動畫樣式 -->
+
+    <style>
+
+        body
+{ font-family: 'Times New Roman', serif; }
+
+        .font-sans
+{ font-family: system-ui, -apple-system, sans-serif; }
+
+        .font-serif
+{ font-family: 'Times New Roman', serif; }
+
+        /*
+簡單的進場動畫
+*/
+
+        @keyframes
+fadeIn {
+
+            from
+{ opacity: 0; }
+
+            to
+{ opacity: 1; }
+
+        }
+
+        @keyframes
+fadeInUp {
+
+            from
+{ opacity: 0; transform: translateY(20px); }
+
+            to
+{ opacity: 1; transform: translateY(0); }
+
+        }
+
+        @keyframes
+slideInLeft {
+
+            from
+{ opacity: 0; transform: translateX(-20px); }
+
+            to
+{ opacity: 1; transform: translateX(0); }
+
+        }
+
+        @keyframes
+slideInRight {
+
+            from
+{ opacity: 0; transform: translateX(20px); }
+
+            to
+{ opacity: 1; transform: translateX(0); }
+
+        }
+
+        .animate-fade-in
+{ animation: fadeIn 0.8s ease-out forwards; }
+
+        .animate-fade-in-up
+{ animation: fadeInUp 0.8s ease-out forwards; }
+
+.animate-slide-in-left
+{ animation: slideInLeft 0.8s ease-out forwards; }
+
+.animate-slide-in-right
+{ animation: slideInRight 0.8s ease-out forwards; }
+
+    </style>
+
+<!-- 設定 Import Map 以支援 React 與 Lucide -->
+
+<script type="importmap">
+
+    {
+
+        "imports":
+{
+
+"react":
+"https://esm.sh/react@18.2.0",
+
+"react-dom/client":
+"https://esm.sh/react-dom@18.2.0/client",
+
+"lucide-react":
+"https://esm.sh/lucide-react@0.292.0"
+
+        }
+
+    }
+
+    </script>
+
+</head>
+
+<body class="bg-white">
+
+<div id="root"></div>
+
+<!-- React 應用程式邏輯 -->
+
+<script type="module">
+
+        import
+React, { useState, useEffect } from 'react';
+
+        import
+{ createRoot } from 'react-dom/client';
+
+        import
+{ Menu, X, Play, ChevronRight, Droplet, Wind, Battery, Flower, Award,
+Users, Target, PieChart, Leaf, ArrowRight } from 'lucide-react';
+
+        //
+--- Components ---
+
+        const
+Navigation = ({ activeTab, setActiveTab }) => {
+
+          const
+[isOpen,
+setIsOpen]
+= useState(false);
+
+          const
+navLinks = [
+
+            {
+id: 'home', name: '首頁'
+},
+
+            {
+id: 'about', name: 'About' },
+
+            {
+id: 'solution', name: '解決方案'
+},
+
+            {
+id: 'patent', name: '獨特專利'
+},
+
+            {
+id: 'crowdfunding', name: '預購專案'
+},
+
+            {
+id: 'team', name: '核心團隊'
+},
+
+          ];
+
+          const
+handleNavClick = (id) => {
+
+setActiveTab(id);
+
+setIsOpen(false);
+
+window.scrollTo({
+top: 0, behavior: 'smooth' });
+
+          };
+
+          return
+(
+
+React.createElement("nav",
+{ className: "fixed w-full z-50 bg-white/95 backdrop-blur-sm
+shadow-sm py-4 transition-all duration-300" },
+
+React.createElement("div",
+{ className: "container mx-auto px-6 flex justify-between
+items-center" },
+
+  React.createElement("button",
+{
+
+    onClick:
+() => handleNavClick('home'),
+
+    className:
+"text-2xl tracking-widest font-serif font-bold text-slate-900
+hover:text-[#D4AF37]
+transition-colors"
+
+  },
+"AURA SOLA"),
+
+  /*
+Desktop Menu */
+
+  React.createElement("div",
+{ className: "hidden md:flex space-x-8 items-center" },
+
+    navLinks.map((link)
+=> (
+
+      React.createElement("button",
+{
+
+        key:
+link.id,
+
+        onClick:
+() => handleNavClick(link.id),
+
+        className:
+`text-sm uppercase tracking-widest transition-colors relative group
+${activeTab === link.id ? 'text-[#D4AF37]
+font-semibold' : 'text-slate-600 hover:text-[#D4AF37]'}`
+
+      },
+
+        link.name,
+
+        activeTab
+=== link.id && React.createElement("span", {
+className: "absolute -bottom-2 left-0 w-full h-0.5 bg-[#D4AF37]"
+})
+
+      )
+
+    )),
+
+    React.createElement("button",
+{
+
+      onClick:
+() => handleNavClick('crowdfunding'),
+
+      className:
+"bg-[#D4AF37]
+text-white px-5 py-2 text-sm uppercase tracking-wider
+hover:bg-[#b5952f]
+transition-colors rounded-sm"
+
+    },
+"立即贊助")
+
+  ),
+
+  /*
+Mobile Menu Button */
+
+  React.createElement("button",
+{ className: "md:hidden text-slate-900", onClick: () =>
+setIsOpen(!isOpen) },
+
+    isOpen
+? React.createElement(X, { size: 24 }) : React.createElement(Menu, {
+size: 24 })
+
+  )
+
+),
+
+/*
+Mobile Menu Overlay */
+
+isOpen
+&& (
+
+  React.createElement("div",
+{ className: "md:hidden absolute top-full left-0 w-full bg-white
+shadow-lg py-4 px-6 flex flex-col space-y-4 border-t border-gray-100
+h-screen" },
+
+    navLinks.map((link)
+=> (
+
+      React.createElement("button",
+{
+
+        key:
+link.id,
+
+        onClick:
+() => handleNavClick(link.id),
+
+        className:
+`text-left text-sm uppercase tracking-widest py-3 border-b
+border-gray-50 ${activeTab === link.id ? 'text-[#D4AF37]
+font-bold' : 'text-slate-800'}`
+
+      },
+link.name)
+
+    )),
+
+    React.createElement("button",
+{
+
+      onClick:
+() => handleNavClick('crowdfunding'),
+
+      className:
+"block text-center bg-[#D4AF37]
+text-white w-full py-3 text-sm uppercase tracking-wider mt-4"
+
+    },
+"立即贊助")
+
+  )
+
+)
+
+            )
+
+          );
+
+        };
+
+        const
+HeroSection = ({ onExploreClick }) => {
+
+          return
+(
+
+React.createElement("div",
+{ className: "relative h-screen flex items-center justify-center
+overflow-hidden" },
+
+/*
+Video Background */
+
+React.createElement("div",
+{ className: "absolute inset-0 z-0" },
+
+  React.createElement("video",
+{
+
+    autoPlay:
+true,
+
+    loop:
+true,
+
+    muted:
+true,
+
+    playsInline:
+true,
+
+    className:
+"w-full h-full object-cover"
+
+  },
+
+    React.createElement("source",
+{ src:
+"https://video.wixstatic.com/video/7a9f89_f08b0ce867df444eab6708e264f88d6e/720p/mp4/file.mp4",
+type: "video/mp4" }),
+
+    "您的瀏覽器不支援影片標籤。"
+
+  ),
+
+  React.createElement("div",
+{ className: "absolute inset-0 bg-black/30" })
+
+),
+
+React.createElement("div",
+{ className: "relative z-10 text-center text-white px-6
+max-w-4xl mx-auto mt-16 animate-fade-in-up" },
+
+  React.createElement("p",
+{ className: "text-sm md:text-base uppercase tracking-[0.3em]
+mb-4 text-[#D4AF37]"
+}, "Fog Atomizing Diffuser"),
+
+  React.createElement("h1",
+{ className: "text-5xl md:text-7xl font-serif font-medium mb-6
+leading-tight" },
+
+    "在呼吸之間",
+React.createElement("br"), "遇見靜靜盛放的自己"
+
+  ),
+
+  React.createElement("p",
+{ className: "text-lg md:text-xl font-light mb-10 text-gray-200
+tracking-wide" },
+
+    "AURA
+SOLA 霧化香氛儀"
+
+  ),
+
+  React.createElement("div",
+{ className: "flex flex-col md:flex-row gap-4 justify-center
+items-center" },
+
+    React.createElement("button",
+{ className: "group flex items-center justify-center space-x-3
+bg-white/10 backdrop-blur-md border border-white/30 px-8 py-4
+rounded-full hover:bg-white hover:text-slate-900 transition-all
+duration-300" },
+
+      React.createElement("span",
+{ className: "uppercase tracking-widest text-sm" },
+"觀看品牌影片"),
+
+      React.createElement("div",
+{ className: "w-8 h-8 rounded-full bg-[#D4AF37]
+flex items-center justify-center text-white group-hover:scale-110
+transition-transform" },
+
+        React.createElement(Play,
+{ size: 12, fill: "currentColor" })
+
+      )
+
+    ),
+
+    React.createElement("button",
+{
+
+      onClick:
+onExploreClick,
+
+      className:
+"flex items-center space-x-2 text-white hover:text-[#D4AF37]
+transition-colors px-6 py-4 uppercase tracking-widest text-sm"
+
+    },
+
+      React.createElement("span",
+null, "探索產品故事"),
+
+      React.createElement(ArrowRight,
+{ size: 16 })
+
+    )
+
+  )
+
+)
+
+            )
+
+          );
+
+        };
+
+        const
+SectionHeading = ({ title, subtitle, align = "center" }) =>
+(
+
+React.createElement("div",
+{ className: `mb-16 ${align === "left" ? "text-left"
+: "text-center"} animate-fade-in` },
+
+React.createElement("h2",
+{ className: "text-3xl md:text-4xl font-serif text-slate-900
+mb-4" }, title),
+
+React.createElement("div",
+{ className: `h-0.5 w-16 bg-[#D4AF37]
+mb-6 ${align === "center" ? "mx-auto" : ""}`
+}),
+
+subtitle
+&& React.createElement("p", { className:
+"text-slate-500 max-w-2xl mx-auto leading-relaxed" },
+subtitle)
+
+          )
+
+        );
+
+        const
+AboutSection = () => {
+
+          return
+(
+
+React.createElement("div",
+{ className: "py-24 bg-white min-h-screen flex items-center"
+},
+
+React.createElement("div",
+{ className: "container mx-auto px-6" },
+
+  React.createElement("div",
+{ className: "flex flex-col md:flex-row items-center gap-16"
+},
+
+    React.createElement("div",
+{ className: "w-full md:w-1/2 animate-slide-in-left" },
+
+      React.createElement("div",
+{ className: "relative" },
+
+        React.createElement("img",
+{
+
+          src:
+"https://static.wixstatic.com/media/7a9f89_a604f0456e564d07b81029264b5d142c~mv2.png",
+
+          alt:
+"About Aura Sola",
+
+          className:
+"w-full h-[500px]
+object-cover shadow-xl rounded-sm"
+
+        }),
+
+        React.createElement("div",
+{ className: "absolute -bottom-10 -right-10 bg-[#F9F9F9]
+p-8 hidden md:block max-w-xs shadow-lg border-l-4 border-[#D4AF37]"
+},
+
+          React.createElement("p",
+{ className: "font-serif italic text-slate-600 text-lg" },
+"\"將精油瓶變成像精品香水瓶般的優雅。\"")
+
+        )
+
+      )
+
+    ),
+
+    React.createElement("div",
+{ className: "w-full md:w-1/2 animate-slide-in-right" },
+
+      React.createElement("span",
+{ className: "text-[#D4AF37]
+uppercase tracking-widest text-sm font-semibold mb-2 block" },
+"Our Story"),
+
+      React.createElement("h2",
+{ className: "text-4xl font-serif text-slate-900 mb-8" },
+"幻香
+Fantasy
+Scent"),
+
+      React.createElement("p",
+{ className: "text-slate-600 leading-loose mb-6" },
+
+"「幻香」由國際芳療師及視覺設計師創立的芳療選物品牌。我們相信香氣不只是嗅覺的體驗，更是空間的靈魂。"
+
+      ),
+
+      React.createElement("p",
+{ className: "text-slate-600 leading-loose mb-8" },
+
+        "AURA
+SOLA 是我們對理想生活的解答。結合感性體驗與理性工程，只為打造出心中最完美的擴香儀式。在簡約的設計中，我們探索香氣與美感的極致平衡。"
+
+      ),
+
+      React.createElement("div",
+{ className: "grid grid-cols-2 gap-8 mt-8 border-t
+border-gray-100 pt-8" },
+
+        React.createElement("div",
+null,
+
+          React.createElement("h4",
+{ className: "font-serif text-2xl text-slate-900 mb-2" },
+"0%"),
+
+          React.createElement("p",
+{ className: "text-sm text-slate-500 uppercase tracking-wider"
+}, "需加水/加熱")
+
+        ),
+
+        React.createElement("div",
+null,
+
+          React.createElement("h4",
+{ className: "font-serif text-2xl text-slate-900 mb-2" },
+"100%"),
+
+          React.createElement("p",
+{ className: "text-sm text-slate-500 uppercase tracking-wider"
+}, "純精油擴香")
+
+        )
+
+      )
+
+    )
+
+  )
+
+)
+
+            )
+
+          );
+
+        };
+
+        const
+FeatureCard = ({ icon: Icon, title, desc }) => (
+
+React.createElement("div",
+{ className: "bg-[#F8F9FA]
+p-8 hover:-translate-y-2 transition-transform duration-300 border-t-2
+border-transparent hover:border-[#D4AF37]
+group h-full shadow-sm hover:shadow-md" },
+
+React.createElement("div",
+{ className: "w-12 h-12 bg-white rounded-full flex items-center
+justify-center mb-6 shadow-sm group-hover:bg-[#D4AF37]
+transition-colors" },
+
+React.createElement(Icon,
+{ className: "text-slate-800 group-hover:text-white
+transition-colors", size: 24 })
+
+            ),
+
+React.createElement("h3",
+{ className: "text-xl font-serif text-slate-900 mb-4" },
+title),
+
+React.createElement("p",
+{ className: "text-slate-500 leading-relaxed text-sm
+text-justify" }, desc)
+
+          )
+
+        );
+
+        const
+SolutionSection = () => {
+
+          return
+(
+
+React.createElement("div",
+{ className: "py-24 bg-white min-h-screen" },
+
+React.createElement("div",
+{ className: "container mx-auto px-6" },
+
+  React.createElement(SectionHeading,
+{
+
+    title:
+"解決方案與產品特色",
+
+    subtitle:
+"我們盤點了現行擴香產品的核心問題：阻塞、清潔麻煩、外型笨重。AURA
+SOLA 提出了一次性的解決方案。"
+
+  }),
+
+  /*
+Features Grid */
+
+  React.createElement("div",
+{ className: "grid grid-cols-1 md:grid-cols-3 gap-8 mb-20"
+},
+
+    React.createElement(FeatureCard,
+{
+
+      icon:
+Wind,
+
+      title:
+"純精油物理擴香",
+
+      desc:
+"健康與純淨：純精油物理擴香，不加水、不加熱。適用坪數
+10~20
+坪。具備微光/無光模式，營造日夜不同的氛圍體驗。"
+
+    }),
+
+    React.createElement(FeatureCard,
+{
+
+      icon:
+Battery,
+
+      title:
+"隱形磁吸充電",
+
+      desc:
+"內建微型鋰電池、微型氣泵與控制晶片。採用隱形磁吸孔充電方案，連續運作
+4-6
+小時，間歇模式可達
+3
+天，隨處安放無拘束。"
+
+    }),
+
+    React.createElement(FeatureCard,
+{
+
+      icon:
+Droplet,
+
+      title:
+"金色霧面陶瓷質感",
+
+      desc:
+"噴頭採金色霧面陶瓷質感塗層，搭配流暢的曲線外型設計，讓精油瓶瞬間化身為像精品香水瓶般的優雅擺飾。"
+
+    })
+
+  ),
+
+  /*
+Product Images Gallery */
+
+  React.createElement("div",
+{ className: "grid grid-cols-1 md:grid-cols-3 gap-4" },
+
+    React.createElement("div",
+{ className: "relative overflow-hidden group rounded-lg
+shadow-md aspect-[4/5]"
+},
+
+      React.createElement("img",
+{
+
+        src:
+"https://static.wixstatic.com/media/7a9f89_a355b5c59cea425ba6973f985a4c0acc~mv2.png",
+
+        alt:
+"AURA SOLA Detail 1",
+
+        className:
+"w-full h-full object-cover transition-transform duration-700
+group-hover:scale-105"
+
+      }),
+
+      React.createElement("div",
+{ className: "absolute inset-0 bg-black/20 opacity-0
+group-hover:opacity-100 transition-opacity duration-300" })
+
+    ),
+
+    React.createElement("div",
+{ className: "relative overflow-hidden group rounded-lg
+shadow-md aspect-[4/5]
+mt-8 md:mt-0" },
+
+      React.createElement("img",
+{
+
+        src:
+"https://static.wixstatic.com/media/7a9f89_e13eb5553b784a7e92f96cd8415d4063~mv2.png",
+
+        alt:
+"AURA SOLA Detail 2",
+
+        className:
+"w-full h-full object-cover transition-transform duration-700
+group-hover:scale-105"
+
+      }),
+
+      React.createElement("div",
+{ className: "absolute inset-0 bg-black/20 opacity-0
+group-hover:opacity-100 transition-opacity duration-300" })
+
+    ),
+
+    React.createElement("div",
+{ className: "relative overflow-hidden group rounded-lg
+shadow-md aspect-[4/5]"
+},
+
+      React.createElement("img",
+{
+
+        src:
+"https://static.wixstatic.com/media/7a9f89_fb8543521dbb4eada50d6182627593dd~mv2.png",
+
+        alt:
+"AURA SOLA Detail 3",
+
+        className:
+"w-full h-full object-cover transition-transform duration-700
+group-hover:scale-105"
+
+      }),
+
+      React.createElement("div",
+{ className: "absolute inset-0 bg-black/20 opacity-0
+group-hover:opacity-100 transition-opacity duration-300" })
+
+    )
+
+  )
+
+)
+
+            )
+
+          );
+
+        };
+
+        const
+PatentSection = () => {
+
+          return
+(
+
+React.createElement("div",
+{ className: "py-24 bg-slate-900 text-white min-h-screen
+relative flex items-center" },
+
+React.createElement("div",
+{ className: "absolute top-0 right-0 w-1/3 h-full
+bg-[#D4AF37]/10
+skew-x-12 transform origin-top translate-x-20" }),
+
+React.createElement("div",
+{ className: "container mx-auto px-6 relative z-10" },
+
+  React.createElement("div",
+{ className: "flex flex-col md:flex-row gap-16" },
+
+    React.createElement("div",
+{ className: "w-full md:w-1/2 order-2 md:order-1
+animate-slide-in-left" },
+
+      React.createElement("span",
+{ className: "text-[#D4AF37]
+uppercase tracking-widest text-sm font-semibold mb-2 block" },
+"Unique Patent"),
+
+      React.createElement("h2",
+{ className: "text-4xl md:text-5xl font-serif mb-8" },
+
+        "可替換式索拉花噴頭",
+React.createElement("br"),
+
+        React.createElement("span",
+{ className: "text-2xl italic text-gray-400" }, "Sola
+Flower Nozzle")
+
+      ),
+
+      React.createElement("div",
+{ className: "space-y-8" },
+
+        React.createElement("div",
+{ className: "flex items-start space-x-4" },
+
+          React.createElement("div",
+{ className: "mt-1" }, React.createElement(Flower, {
+className: "text-[#D4AF37]",
+size: 28 })),
+
+          React.createElement("div",
+null,
+
+            React.createElement("h3",
+{ className: "text-xl font-medium mb-2" }, "免清潔、零阻塞"),
+
+            React.createElement("p",
+{ className: "text-gray-400 font-light leading-relaxed" },
+
+"全球首創將擴香噴頭與索拉花結合。解決傳統噴嘴堵塞痛點，無需拆洗，只需像換花一樣優雅替換。"
+
+            )
+
+          )
+
+        ),
+
+        React.createElement("div",
+{ className: "flex items-start space-x-4" },
+
+          React.createElement("div",
+{ className: "mt-1" }, React.createElement(Target, {
+className: "text-[#D4AF37]",
+size: 28 })),
+
+          React.createElement("div",
+null,
+
+            React.createElement("h3",
+{ className: "text-xl font-medium mb-2" }, "虹吸霧化結構專利"),
+
+            React.createElement("p",
+{ className: "text-gray-400 font-light leading-relaxed" },
+
+"將精油物理特性當成設計核心。獨家虹吸結構確保高黏度精油（如岩蘭草）也能順暢擴香。"
+
+            )
+
+          )
+
+        ),
+
+        React.createElement("div",
+{ className: "flex items-start space-x-4" },
+
+          React.createElement("div",
+{ className: "mt-1" }, React.createElement(Award, {
+className: "text-[#D4AF37]",
+size: 28 })),
+
+          React.createElement("div",
+null,
+
+            React.createElement("h3",
+{ className: "text-xl font-medium mb-2" }, "儀式感美學"),
+
+            React.createElement("p",
+{ className: "text-gray-400 font-light leading-relaxed" },
+
+              "「換花
+=
+換香氣」。索拉花隨著精油浸潤會呈現獨特紋理與色澤，是視覺與嗅覺的雙重饗宴。"
+
+            )
+
+          )
+
+        ),
+
+        /*
+New Sola Flower Material Description */
+
+        React.createElement("div",
+{ className: "mt-8" },
+
+          /*
+文字說明區塊
+*/
+
+          React.createElement("div",
+{ className: "p-6 bg-white/5 rounded-xl border border-white/10
+relative overflow-hidden group mb-6" },
+
+             React.createElement("div",
+{ className: "absolute top-0 right-0 p-4 opacity-10
+group-hover:opacity-20 transition-opacity" },
+
+React.createElement(Leaf,
+{ size: 60 })
+
+             ),
+
+             React.createElement("h4",
+{ className: "text-[#D4AF37]
+text-md font-semibold mb-3 tracking-wide" },
+
+ "#天然永續素材，可重複使用、可染色、香氛持久"
+
+             ),
+
+             React.createElement("p",
+{ className: "text-gray-300 font-light text-sm leading-relaxed
+text-justify" },
+
+               "索拉花
+（Sola
+Flower），又稱蓪草花、擴香花，是一種由「索拉木」或「蓪草」等植物的莖部刨製成的手工花材，質感輕薄。"
+
+             )
+
+          ),
+
+          /*
+獨立圖片區塊
+-
+移出上方的
+div
+框架
+*/
+
+          React.createElement("div",
+{ className: "rounded-xl overflow-hidden border border-white/10
+shadow-lg relative group" },
+
+             React.createElement("img",
+{
+
+               src:
+"https://static.wixstatic.com/media/7a9f89_845d1e0d027d449c8655fbdefcf13034~mv2.jpg",
+
+               alt:
+"Sola Flower Texture Detail",
+
+               className:
+"w-full h-auto object-cover transition-transform duration-700
+group-hover:scale-105"
+
+             }),
+
+             React.createElement("div",
+{ className: "absolute inset-0 bg-gradient-to-t from-black/40
+to-transparent opacity-60" }),
+
+             React.createElement("div",
+{ className: "absolute bottom-4 left-4" },
+
+React.createElement("span",
+{ className: "text-xs font-light text-white/80 uppercase
+tracking-widest" }, "Handcrafted Texture")
+
+             )
+
+          )
+
+        )
+
+      )
+
+    ),
+
+    React.createElement("div",
+{ className: "w-full md:w-1/2 order-1 md:order-2 flex flex-col
+space-y-6 animate-slide-in-right" },
+
+       /*
+Mockup of the nozzle mechanism */
+
+      React.createElement("div",
+{ className: "relative rounded-lg overflow-hidden border
+border-white/10 shadow-2xl" },
+
+        React.createElement("img",
+{
+
+          src:
+"https://static.wixstatic.com/media/7a9f89_72358e16fdf54c4d8d8e4b56b77e274d~mv2.png",
+
+          alt:
+"Sola Flower Mechanism",
+
+          className:
+"w-full h-auto opacity-90 hover:scale-105 transition-transform
+duration-700"
+
+        }),
+
+        React.createElement("div",
+{ className: "absolute bottom-6 left-6" },
+
+          React.createElement("div",
+{ className: "bg-white/10 backdrop-blur px-4 py-2 rounded
+text-xs uppercase tracking-widest text-white border border-white/20"
+},
+
+            "Patent
+Pending"
+
+          )
+
+        )
+
+      ),
+
+      /*
+Existing Image for Sola Flower Material */
+
+       React.createElement("div",
+{ className: "relative rounded-lg overflow-hidden border
+border-white/10 shadow-2xl" },
+
+        React.createElement("img",
+{
+
+          src:
+"https://static.wixstatic.com/media/7a9f89_2aadb4d9a4444045971038b9b634a36c~mv2.jpg",
+
+          alt:
+"Sola Flower Material",
+
+          className:
+"w-full h-auto opacity-90 hover:scale-105 transition-transform
+duration-700"
+
+        }),
+
+         React.createElement("div",
+{ className: "absolute bottom-6 right-6" },
+
+          React.createElement("div",
+{ className: "bg-[#D4AF37]/80
+backdrop-blur px-4 py-2 rounded text-xs uppercase tracking-widest
+text-white shadow-lg" },
+
+            "Natural
+Material"
+
+          )
+
+        )
+
+      ),
+
+      /*
+Moved Image - 新增至此處
+*/
+
+      React.createElement("div",
+{ className: "relative rounded-lg overflow-hidden border
+border-white/10 shadow-2xl" },
+
+        React.createElement("img",
+{
+
+          src:
+"https://static.wixstatic.com/media/7a9f89_a5bbe54deb554f4faa97fc5bf21be79a~mv2.png",
+
+          alt:
+"Sola Material Detail",
+
+          className:
+"w-full h-auto opacity-90 hover:scale-105 transition-transform
+duration-700"
+
+        })
+
+      )
+
+    )
+
+  )
+
+)
+
+            )
+
+          );
+
+        };
+
+        const
+FundingTier = ({ title, price, discount, items, limit, highlight =
+false }) => (
+
+React.createElement("div",
+{ className: `p-8 border relative flex flex-col h-full transition-all
+duration-300 ${highlight ? 'border-[#D4AF37]
+shadow-xl bg-white scale-105 z-10' : 'border-gray-200 bg-gray-50
+hover:border-gray-300'}` },
+
+highlight
+&& React.createElement("div", { className:
+"absolute top-0 left-1/2 transform -translate-x-1/2
+-translate-y-1/2 bg-[#D4AF37]
+text-white text-xs px-3 py-1 uppercase tracking-widest font-bold"
+},
+
+"Most
+Popular"
+
+            ),
+
+React.createElement("h3",
+{ className: "text-xl font-serif text-slate-900 mb-2" },
+title),
+
+React.createElement("div",
+{ className: "flex items-baseline mb-4" },
+
+React.createElement("span",
+{ className: "text-sm text-gray-400 line-through mr-2" },
+
+  `NT$
+${Math.round(price / (parseInt(discount)/100 * 0.1 +
+(discount.includes('折')
+? parseInt(discount)/100 : 0)) * 10).toLocaleString()}`
+
+),
+
+React.createElement("span",
+{ className: "text-3xl font-bold text-[#D4AF37]"
+}, `NT$ ${price.toLocaleString()}`)
+
+            ),
+
+React.createElement("div",
+{ className: "mb-6" },
+
+React.createElement("span",
+{ className: "bg-slate-900 text-white text-xs px-2 py-1 rounded"
+}, discount),
+
+React.createElement("span",
+{ className: "ml-2 text-xs text-slate-500" }, `限量
+${limit}
+組`)
+
+            ),
+
+React.createElement("ul",
+{ className: "space-y-3 mb-8 flex-1" },
+
+items.map((item,
+idx) => (
+
+  React.createElement("li",
+{ key: idx, className: "flex items-start text-sm text-slate-600"
+},
+
+    React.createElement(ChevronRight,
+{ size: 16, className: "text-[#D4AF37]
+mr-1 flex-shrink-0 mt-0.5" }),
+
+    item
+
+  )
+
+))
+
+            ),
+
+React.createElement("button",
+{ className: `w-full py-3 text-sm uppercase tracking-widest
+transition-colors ${highlight ? 'bg-[#D4AF37]
+text-white hover:bg-[#b5952f]'
+: 'bg-slate-900 text-white hover:bg-slate-800'}` },
+
+"支持此方案"
+
+            )
+
+          )
+
+        );
+
+        const
+ProgressBar = ({ current, target, percentage }) => (
+
+React.createElement("div",
+{ className: "mb-12" },
+
+React.createElement("div",
+{ className: "flex justify-between items-end mb-2" },
+
+React.createElement("div",
+null,
+
+  React.createElement("span",
+{ className: "text-4xl font-serif font-bold text-[#D4AF37]"
+}, `${percentage}%`),
+
+  React.createElement("span",
+{ className: "text-slate-500 ml-2 text-sm" }, "達標率")
+
+),
+
+React.createElement("div",
+{ className: "text-right" },
+
+  React.createElement("p",
+{ className: "text-slate-900 font-medium" }, `NT$
+${current}`),
+
+  React.createElement("p",
+{ className: "text-slate-400 text-xs" }, `目標
+NT$
+${target}`)
+
+)
+
+            ),
+
+React.createElement("div",
+{ className: "w-full bg-gray-200 h-2 rounded-full
+overflow-hidden" },
+
+React.createElement("div",
+{ className: "bg-[#D4AF37]
+h-full rounded-full transition-all duration-1000 ease-out",
+style: { width: `${Math.min(percentage, 100)}%` } })
+
+            )
+
+          )
+
+        );
+
+        const
+CrowdfundingSection = () => {
+
+          return
+(
+
+React.createElement("div",
+{ className: "py-24 bg-[#FAFAFA]
+min-h-screen" },
+
+React.createElement("div",
+{ className: "container mx-auto px-6" },
+
+  React.createElement(SectionHeading,
+{
+
+    title:
+"預購專案",
+
+    subtitle:
+"加入我們的創業旅程，讓
+AURA
+SOLA 成為您生活中的第一道香氣儀式。"
+
+  }),
+
+  /*
+Status Bar */
+
+  React.createElement("div",
+{ className: "max-w-4xl mx-auto bg-white p-8 shadow-sm mb-16
+border border-gray-100 rounded-xl" },
+
+     React.createElement(ProgressBar,
+{ current: "850,000", target: "2,000,000",
+percentage: 42 }),
+
+     React.createElement("div",
+{ className: "grid grid-cols-1 md:grid-cols-3 gap-6 text-center"
+},
+
+       React.createElement("div",
+{ className: "p-4 border border-gray-100 rounded bg-gray-50"
+},
+
+         React.createElement("h4",
+{ className: "text-sm text-slate-500 mb-1" }, "目標
+100%"),
+
+         React.createElement("p",
+{ className: "font-serif text-lg text-slate-900" }, "NT$
+200萬"),
+
+         React.createElement("p",
+{ className: "text-xs text-[#D4AF37]
+mt-1" }, "贈送專屬收納絨布袋")
+
+       ),
+
+       React.createElement("div",
+{ className: "p-4 border border-gray-100 rounded opacity-50"
+},
+
+         React.createElement("h4",
+{ className: "text-sm text-slate-500 mb-1" }, "目標
+200%"),
+
+         React.createElement("p",
+{ className: "font-serif text-lg text-slate-900" }, "NT$
+400萬"),
+
+         React.createElement("p",
+{ className: "text-xs text-slate-400 mt-1" }, "解鎖新色「月光銀」")
+
+       ),
+
+       React.createElement("div",
+{ className: "p-4 border border-gray-100 rounded opacity-50"
+},
+
+         React.createElement("h4",
+{ className: "text-sm text-slate-500 mb-1" }, "目標
+300%"),
+
+         React.createElement("p",
+{ className: "font-serif text-lg text-slate-900" }, "NT$
+600萬"),
+
+         React.createElement("p",
+{ className: "text-xs text-slate-400 mt-1" }, "調香師聯名精油")
+
+       )
+
+     )
+
+  ),
+
+  /*
+Pricing Tiers */
+
+  React.createElement("div",
+{ className: "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4
+gap-6 mb-24" },
+
+    React.createElement(FundingTier,
+{
+
+      title:
+"【超早鳥】極致體驗組",
+
+      price:
+2680,
+
+      discount:
+"55折",
+
+      limit:
+"200",
+
+      highlight:
+true,
+
+      items:
+["主機
+x1",
+"琥珀瓶
+x1",
+"索拉花噴頭
+x3
+(半年份)",
+"磁吸充電飾品
+x1"]
+
+    }),
+
+    React.createElement(FundingTier,
+{
+
+      title:
+"【早鳥】優雅入門組",
+
+      price:
+1980,
+
+      discount:
+"6折",
+
+      limit:
+"500",
+
+      items:
+["主機
+x1",
+"琥珀瓶
+x1",
+"索拉花噴頭
+x1"]
+
+    }),
+
+    React.createElement(FundingTier,
+{
+
+      title:
+"【雙人】共享儀式組",
+
+      price:
+3880,
+
+      discount:
+"58折",
+
+      limit:
+"300",
+
+      items:
+["主機
+x2",
+"琥珀瓶
+x2",
+"索拉花噴頭
+x2",
+"磁吸充電
+x2"]
+
+    }),
+
+    React.createElement(FundingTier,
+{
+
+      title:
+"【訂閱制】香氛年票",
+
+      price:
+1200,
+
+      discount:
+"5折",
+
+      limit:
+"100",
+
+      items:
+["索拉花噴頭
+x12",
+"每月配送一朵",
+"含季節限定款花型"]
+
+    })
+
+  ),
+
+  /*
+Funds Allocation */
+
+  React.createElement("div",
+{ className: "flex flex-col md:flex-row items-center gap-12
+max-w-5xl mx-auto mb-16" },
+
+     React.createElement("div",
+{ className: "w-full md:w-1/2" },
+
+       React.createElement("h3",
+{ className: "text-2xl font-serif text-slate-900 mb-6" },
+"資金分配規劃"),
+
+       React.createElement("p",
+{ className: "text-slate-600 mb-8 leading-relaxed" },
+
+         "您的每一分贊助，我們都將透明地用於產品實現。其中生產製造佔比最高
+(45%)，以確保達到精品級的工藝水準。"
+
+       ),
+
+       React.createElement("ul",
+{ className: "space-y-4" },
+
+         [
+
+           {
+label: "生產與製造",
+val: "45%", color: "bg-[#002147]"
+},
+
+           {
+label: "研發與優化",
+val: "20%", color: "bg-[#D4AF37]"
+},
+
+           {
+label: "行銷與廣告",
+val: "20%", color: "bg-gray-400" },
+
+           {
+label: "物流與營運",
+val: "10%", color: "bg-gray-300" },
+
+           {
+label: "預備金",
+val: "5%", color: "bg-gray-200" }
+
+         ].map((item,
+idx) => (
+
+           React.createElement("li",
+{ key: idx, className: "flex items-center justify-between
+text-sm border-b border-gray-100 pb-2" },
+
+             React.createElement("div",
+{ className: "flex items-center" },
+
+ React.createElement("span",
+{ className: `w-3 h-3 rounded-full mr-3 ${item.color}` }),
+
+ React.createElement("span",
+{ className: "text-slate-700" }, item.label)
+
+             ),
+
+ React.createElement("span",
+{ className: "font-bold text-slate-900" }, item.val)
+
+           )
+
+         ))
+
+       )
+
+     ),
+
+     React.createElement("div",
+{ className: "w-full md:w-1/2 flex justify-center" },
+
+       /*
+Simple CSS Pie Chart representation using conic-gradient */
+
+       React.createElement("div",
+{
+
+         className:
+"w-64 h-64 rounded-full shadow-inner relative",
+
+         style:
+{
+
+           background:
+`conic-gradient(
+
+             #002147
+0% 45%,
+
+             #D4AF37
+45% 65%,
+
+             #9CA3AF
+65% 85%,
+
+             #D1D5DB
+85% 95%,
+
+             #E5E7EB
+95% 100%
+
+           )`
+
+         }
+
+       },
+
+         React.createElement("div",
+{ className: "absolute inset-0 m-12 bg-[#FAFAFA]
+rounded-full flex items-center justify-center shadow-md" },
+
+           React.createElement("div",
+{ className: "text-center" },
+
+React.createElement(PieChart,
+{ className: "mx-auto text-slate-400 mb-1", size: 24 }),
+
+React.createElement("span",
+{ className: "text-xs text-slate-400" }, "Total
+Goal"),
+
+React.createElement("p",
+{ className: "font-bold text-slate-800" }, "NT$ 2M")
+
+           )
+
+         )
+
+       )
+
+     )
+
+  ),
+
+  /*
+New Business Model Link Section */
+
+  React.createElement("div",
+{ className: "max-w-3xl mx-auto text-center border-t
+border-gray-200 pt-12" },
+
+     React.createElement("p",
+{ className: "text-slate-500 mb-6 italic" },
+"想更深入了解我們的獲利模式與未來願景嗎？"),
+
+     React.createElement("a",
+{
+
+       href:
+"https://gemini.google.com/share/185a2b6ad070",
+
+       target:
+"_blank",
+
+       rel:
+"noopener noreferrer",
+
+       className:
+"inline-flex items-center space-x-2 border border-[#D4AF37]
+text-[#D4AF37]
+px-8 py-3 rounded-full hover:bg-[#D4AF37]
+hover:text-white transition-all duration-300 uppercase
+tracking-widest text-sm"
+
+     },
+
+       React.createElement("span",
+null, "瞭解商業模式"),
+
+       React.createElement(ChevronRight,
+{ size: 16 })
+
+     )
+
+  )
+
+)
+
+            )
+
+          );
+
+        };
+
+        const
+TeamMember = ({ role, title, desc }) => (
+
+React.createElement("div",
+{ className: "text-center px-4" },
+
+React.createElement("div",
+{ className: "w-24 h-24 mx-auto bg-gray-200 rounded-full mb-6
+overflow-hidden border-2 border-white shadow-lg" },
+
+ /*
+Placeholder avatar */
+
+ React.createElement("div",
+{ className: "w-full h-full bg-slate-300 flex items-center
+justify-center text-slate-500" },
+
+   React.createElement(Users,
+{ size: 32 })
+
+ )
+
+            ),
+
+React.createElement("h4",
+{ className: "text-lg font-serif text-slate-900 mb-1" },
+title),
+
+React.createElement("p",
+{ className: "text-xs uppercase tracking-widest text-[#D4AF37]
+mb-3" }, role),
+
+React.createElement("p",
+{ className: "text-sm text-slate-500 leading-relaxed max-w-xs
+mx-auto" }, desc)
+
+          )
+
+        );
+
+        const
+TeamSection = () => {
+
+          return
+(
+
+React.createElement("div",
+{ className: "py-24 bg-white min-h-screen" },
+
+React.createElement("div",
+{ className: "container mx-auto px-6" },
+
+  React.createElement(SectionHeading,
+{
+
+    title:
+"核心團隊",
+
+    subtitle:
+"一群對香氛與設計充滿執著的跨領域專家，只為打造出完美的擴香儀式。"
+
+  }),
+
+  React.createElement("div",
+{ className: "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4
+gap-12" },
+
+    React.createElement(TeamMember,
+{
+
+      title:
+"首席香氛顧問",
+
+      role:
+"英國
+IFA
+國際芳療師",
+
+      desc:
+"負責霧化效能測試，確保每一滴精油保留其嗅覺層次與療癒價值。監製季節限定香氣配方。"
+
+    }),
+
+    React.createElement(TeamMember,
+{
+
+      title:
+"設計總監",
+
+      role:
+"Red Dot Award Winner",
+
+      desc:
+"曾獲德國紅點設計大獎肯定，擅長將「減法美學」融入生活用品，主導產品外觀與使用者體驗。"
+
+    }),
+
+    React.createElement(TeamMember,
+{
+
+      title:
+"產品研發總監",
+
+      role:
+"資深產品設計師",
+
+      desc:
+"擁有豐富消費性電子開發經驗。成功開發專利「虹吸式花朵模組」與「隱形磁吸」結構。"
+
+    }),
+
+    React.createElement(TeamMember,
+{
+
+      title:
+"品牌營運團隊",
+
+      role:
+"FMCG & 精品行銷",
+
+      desc:
+"匯聚來自精品與生活風格產業的資深行銷人，精準定位市場策略，將優雅體驗推向全球。"
+
+    })
+
+  )
+
+)
+
+            )
+
+          );
+
+        };
+
+        const
+Footer = () => {
+
+          return
+(
+
+React.createElement("footer",
+{ className: "bg-[#002147]
+text-white py-16 mt-auto" },
+
+React.createElement("div",
+{ className: "container mx-auto px-6" },
+
+  React.createElement("div",
+{ className: "grid grid-cols-1 md:grid-cols-4 gap-12 mb-12
+border-b border-white/10 pb-12" },
+
+    React.createElement("div",
+{ className: "col-span-1 md:col-span-2" },
+
+      React.createElement("h2",
+{ className: "text-3xl font-serif mb-6 tracking-wider" },
+"AURA SOLA"),
+
+      React.createElement("p",
+{ className: "text-gray-400 max-w-md leading-relaxed mb-6"
+},
+
+        "在呼吸之間，遇見靜靜盛放的自己。",
+React.createElement("br"),
+
+        "AURA
+SOLA 致力於將傳統擴香設備轉化為居家生活的情緒設計。"
+
+      ),
+
+      React.createElement("div",
+{ className: "flex space-x-4" },
+
+        React.createElement("a",
+{ href: "#", className: "w-10 h-10 rounded-full border
+border-white/20 flex items-center justify-center hover:bg-[#D4AF37]
+hover:border-[#D4AF37]
+transition-colors" },
+
+          React.createElement("span",
+{ className: "sr-only" }, "Facebook"),
+
+          React.createElement("span",
+{ className: "font-serif" }, "F")
+
+        ),
+
+        React.createElement("a",
+{ href: "#", className: "w-10 h-10 rounded-full border
+border-white/20 flex items-center justify-center hover:bg-[#D4AF37]
+hover:border-[#D4AF37]
+transition-colors" },
+
+          React.createElement("span",
+{ className: "sr-only" }, "Instagram"),
+
+          React.createElement("span",
+{ className: "font-serif" }, "I")
+
+        )
+
+      )
+
+    ),
+
+    React.createElement("div",
+null,
+
+      React.createElement("h4",
+{ className: "text-[#D4AF37]
+uppercase tracking-widest text-sm font-semibold mb-6" },
+"Contact"),
+
+      React.createElement("ul",
+{ className: "space-y-4 text-gray-400 text-sm" },
+
+        React.createElement("li",
+null, "hello@aurasola.com"),
+
+        React.createElement("li",
+null, "+886 2 1234 5678"),
+
+        React.createElement("li",
+null, "台北市信義區松高路123號")
+
+      )
+
+    ),
+
+    React.createElement("div",
+null,
+
+      React.createElement("h4",
+{ className: "text-[#D4AF37]
+uppercase tracking-widest text-sm font-semibold mb-6" },
+"Links"),
+
+      React.createElement("ul",
+{ className: "space-y-4 text-gray-400 text-sm" },
+
+        React.createElement("li",
+null, React.createElement("a", { href: "#",
+className: "hover:text-white transition-colors" },
+"品牌故事")),
+
+        React.createElement("li",
+null, React.createElement("a", { href: "#",
+className: "hover:text-white transition-colors" },
+"募資計畫")),
+
+        React.createElement("li",
+null, React.createElement("a", { href: "#",
+className: "hover:text-white transition-colors" },
+"常見問題")),
+
+        React.createElement("li",
+null, React.createElement("a", { href: "#",
+className: "hover:text-white transition-colors" },
+"隱私權政策"))
+
+      )
+
+    )
+
+  ),
+
+  React.createElement("div",
+{ className: "flex flex-col md:flex-row justify-between
+items-center text-xs text-gray-500" },
+
+    React.createElement("p",
+null, "© 2026 AURA SOLA Inc. All rights reserved."),
+
+    React.createElement("p",
+{ className: "mt-2 md:mt-0" }, "Designed for Pitch
+Presentation")
+
+  )
+
+)
+
+            )
+
+          );
+
+        };
+
+        //
+Main App Render
+
+        const
+App = () => {
+
+          const
+[activeTab,
+setActiveTab]
+= useState('home');
+
+          useEffect(()
+=> {
+
+            //
+確保每次切換頁籤時，視窗滾動到最上方
+
+window.scrollTo(0,
+0);
+
+          },
+[activeTab]);
+
+          return
+(
+
+React.createElement("div",
+{ className: "font-sans text-slate-900 bg-white
+selection:bg-[#D4AF37]
+selection:text-white flex flex-col min-h-screen" },
+
+React.createElement(Navigation,
+{ activeTab: activeTab, setActiveTab: setActiveTab }),
+
+/*
+Content Area with Top Padding for Fixed Nav */
+
+React.createElement("main",
+{ className: "flex-grow pt-20" },
+
+  activeTab
+=== 'home' && React.createElement(HeroSection, {
+onExploreClick: () => setActiveTab('about') }),
+
+  activeTab
+=== 'about' && React.createElement(AboutSection),
+
+  activeTab
+=== 'solution' && React.createElement(SolutionSection),
+
+  activeTab
+=== 'patent' && React.createElement(PatentSection),
+
+  activeTab
+=== 'crowdfunding' &&
+React.createElement(CrowdfundingSection),
+
+  activeTab
+=== 'team' && React.createElement(TeamSection)
+
+),
+
+/*
+Footer 只在非首頁顯示，或根據需求調整
+*/
+
+activeTab
+!== 'home' && React.createElement(Footer)
+
+            )
+
+          );
+
+        };
+
+        const
+root = createRoot(document.getElementById('root'));
+
+root.render(React.createElement(App));
+
+    </script>
+
+</body>
+
+</html>
